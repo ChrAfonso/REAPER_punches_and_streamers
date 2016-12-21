@@ -1,0 +1,32 @@
+BYPASS 0 0
+<VIDEO_EFFECT "Video processor" ""
+  <CODE
+    |//remove black
+    |
+    |img1=input_track(0);
+    |img2=0;
+    |!project_wh_valid && input_info(img1,w,h) ? ( project_w=w; project_h=h; );
+    |
+    |gfx_blit(img1,0);
+    |
+    |img2 != img1 ? (
+    |   gfx_a = 1;
+    |   
+    |     gfx_a > 0 ? (
+    |       gfx_mode = 1; //(filter>0.5 ? 256 : 0)|(use_srca?0x10000:0);
+    |       oldcs=colorspace;
+    |       use_srca ? colorspace='RGBA';
+    |       z = 10^(zoom/10);
+    |       input_info(img2,sw,sh);
+    |       dw = (project_w*z)|0;
+    |       dh = (sh*project_w/sw*z)|0;
+    |       x = xoffs<-1 ? (1+xoffs)*dw : xoffs > 1 ? project_w+(xoffs-2)*dw : ((xoffs+1)*(project_w-dw))*0.5;
+    |       y = yoffs<-1 ? (1+yoffs)*dh : yoffs > 1 ? project_h+(yoffs-2)*dh : ((yoffs+1)*(project_h-dh))*0.5;
+    |       gfx_blit(img2,0, x|0,y|0,dw,dh);
+    |       restore_cs && oldcs != colorspace ? ( colorspace=oldcs; gfx_fillrect(0,0,0,0); );
+    |     );
+    |);
+  >
+  CODEPARM 1.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 1.0000000000 1.0000000000 1.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000
+>
+WAK 0

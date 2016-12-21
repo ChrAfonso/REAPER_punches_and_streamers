@@ -32,7 +32,7 @@ else
 end
 
 streamers = {}
-streamers["white"] = path .. "streamer_4s_white.avi" -- HACK: White must be filtered with remove_black? chroma key filter is strange...
+streamers["white"] = path .. "streamer_4s_white_bs.avi"
 streamers["yellow"] = path .. "streamer_4s_yellow_bs.avi"
 streamers["green"] = path .. "streamer_4s_green_bs.avi"
 streamers["red"] = path .. "streamer_4s_red_bs.avi"
@@ -54,7 +54,7 @@ function getPunchSource()
   return reaper.PCM_Source_CreateFromFile(punch_white)
 end
 
--- select Streamer track
+-- find Streamer and Punches tracks
 streamerTrack = nil
 punchTrack = nil
 for t = 0, reaper.CountTracks(0)-1 do
@@ -62,13 +62,14 @@ for t = 0, reaper.CountTracks(0)-1 do
   local _, trackName = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
   if trackName == "Streamers" then
     streamerTrack = track
+    --punchTrack = track -- TEST: If bluescreen works on everything, we only need one track
   elseif trackName == "Punches" then
     punchTrack = track
   end
   reaper.SetTrackSelected(track, false) -- deselect all, then select Streamer track later
 end
 
--- create new if not found
+-- create new if not found -- TODO create video fx
 if punchTrack == nil then
   reaper.InsertTrackAtIndex(0, true)
   punchTrack = reaper.GetTrack(0, 0)
@@ -94,6 +95,8 @@ end
 
 clearTrack(punchTrack)
 clearTrack(streamerTrack)
+
+reaper.SetTrackSelected(streamerTrack, true) -- needed for InsertMedia
 
 -- find markers
 numMarkers = reaper.CountProjectMarkers(0)
@@ -140,17 +143,6 @@ for m = 0,numMarkers-1 do
     -- create streamer
     local streamerSrc = getStreamerSource(color)
     if streamerSrc then
-      -- needed for InsertMedia
-      if (color == "white") then -- HACK: filter with remove_black, chroma key filter is strange...
-        println("Select punch track")
-        reaper.SetTrackSelected(punchTrack, true)
-        reaper.SetTrackSelected(streamerTrack, false)
-      else
-        println("Select streamer track")
-        reaper.SetTrackSelected(punchTrack, false)
-        reaper.SetTrackSelected(streamerTrack, true)
-      end
-    
       reaper.SetEditCurPos(position, false, false)
       reaper.GetSet_LoopTimeRange(true, true, position - length, position, false)
       local retval = reaper.InsertMedia(streamerSrc, 4)
