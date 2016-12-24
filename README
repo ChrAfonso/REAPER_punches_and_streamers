@@ -1,0 +1,24 @@
+Punches and Streamers
+---------------------
+by Christian Afonso
+
+REAPER script to overlay punches and streamers over video track. Very rudimentary version.
+
+Usage:
+- Put CAfonso folder containing the update_streamers script and needed data files into
+%APPDATA%/Roaming/REAPER/Scripts/ folder (look for analogous folder on Mac).
+- Load the script in the Actions Menu (and assign a shortcut)
+- Add markers named "P" or "PUNCH" for punches, "S [N COLOR]" or "STREAMER [N COLOR]"
+  for streamers. Optional parameters: N = streamer duration in seconds (default 2), 
+  COLOR = streamer color (default white, currently also possible: red yellow green, 
+  add a - in front to suppress the punch at the end, e.g. "S 3 -red" for a 3-second
+  streamer without a punch)
+- Call the script. It should add two tracks "Streamers" and "Punches" and add one
+  Video FX to each of them (chroma key for streamers, remove black for punches), and
+  then add items for every marker matching the specified patterns.
+
+This script is a work-in-progress, provided as-is without any warranties.
+You can use it however you like, but at your own risk (Meaning: save your project 
+before using it!)
+I'm open for feedback and suggestions: chr.afonso AT gmail.com
+
