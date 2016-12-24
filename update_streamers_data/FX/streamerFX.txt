@@ -1,0 +1,27 @@
+<FXCHAIN
+  WNDRECT 272 227 773 466
+  SHOW 4
+  LASTSEL 3
+  DOCKED 0
+  BYPASS 0 0 0
+  <VIDEO_EFFECT "Video processor" ""
+	<CODE
+	  |//simple source chroma-key
+	  |//@param1:k1 k1 -0.5 -16 16 -0.5 0.01
+	  |//@param2:k2 k2 -0.5 -16 16 -0.5 0.01
+	  |//@param3:k3 k3 0.4 -16 16 0.4 0.01
+	  |//@param4:k4 k4 2.0 -4 4 2.0 0.1
+	  |in1=0;
+	  |in2=input_track(0);
+	  |input_info(in1,w,h);
+	  |w > 0 && h > 0 && in2 != in1 ? (
+	  |  gfx_img_resize(-1,w,h);
+	  |  gfx_blit(in2,1);
+	  |  gfx_keyedblit(in1,0,0,w,h,0,0,k1,k2,k3,k4);
+	  |) : input_count()==0 ? (
+	  |  gfx_blit(0);
+	  |);
+	>
+	CODEPARM -1.0000000000 1.0000000000 3.8500000000 2.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000
+  >
+  FLOATPOS 0 0 0 0

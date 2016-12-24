@@ -1,13 +1,16 @@
 -- Streamers and Punches
 -- by Christian Afonso
+--
+-- addVideoFX function based on code by eugen2777
 
 -- v0.1: Proof of concept: Read markers and add streamer videos (in 4 colors)
 --       and punch images to Streamers/Punches tracks (created if not found).
---       Tracks currently must have video effects "chroma key" for colored 
---       streamers and "remove black" (really =additive blend) for punches/
---       white streamers. This is a bit hacky, but the best I could come up
---       with using the current video effects...
---       Images/videos currently pre-rendered and read in from fixed dir/project dir.
+--       Existing tracks currently must have video effects "chroma key" for colored 
+--       streamers and "remove black" (really =additive blend) for punches. FX are
+--       created from template files on newly created tracks.
+--       This is a bit hacky, but the best I could come up with using the 
+--       current video effects...
+--       Images/videos currently pre-rendered and read in from fixed data dir.
 
 --- gfx debug utility
 function println(stringy)
@@ -21,23 +24,29 @@ end
 gfx.x = 10
 gfx.y = 10
 
--- streamer items
--- TODO save generic? Currently have to be in project dir
-path = reaper.GetProjectPath("")
+-- Setup: Paths, item files, functions
 os = reaper.GetOS();
 if(os == "Win32" or os == "Win64") then
-  path = path .. "\\"
+  pathSep = "\\"
 else
-  path = path .. "/"
+  pathSep = "/"
+end
+
+dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. "CAfonso" .. pathSep
+if not reaper.file_exists(dataPath .. "update_streamers.lua") then
+  println("dataPath " .. dataPath .. " not found!")
+else
+  dataPath = dataPath .. "update_streamers_data" .. pathSep
+  println("dataPath: " .. dataPath)
 end
 
 streamers = {}
-streamers["white"] = path .. "streamer_4s_white_bs.avi"
-streamers["yellow"] = path .. "streamer_4s_yellow_bs.avi"
-streamers["green"] = path .. "streamer_4s_green_bs.avi"
-streamers["red"] = path .. "streamer_4s_red_bs.avi"
+streamers["white"] = dataPath .. "streamer_4s_white_bs.avi"
+streamers["yellow"] = dataPath .. "streamer_4s_yellow_bs.avi"
+streamers["green"] = dataPath .. "streamer_4s_green_bs.avi"
+streamers["red"] = dataPath .. "streamer_4s_red_bs.avi"
 
-punch_white = path .. "punch_1600x900.png"
+punch_white = dataPath .. "punch_1600x900.png"
 
 function getStreamerSource(color)
   println("Looking for streamer in " .. color)
@@ -52,6 +61,31 @@ end
 
 function getPunchSource()
   return reaper.PCM_Source_CreateFromFile(punch_white)
+end
+
+function addVideoFX(track, FX)
+  -- read cached FX chunk from text file and add to track chunk
+  local retval, trackChunk = reaper.GetTrackStateChunk(track, "", true)
+  if retval then
+    local fxGUID = reaper.genGuid("")
+    local file = io.open(dataPath .. "FX" .. pathSep .. FX, "r")
+    if file then
+      local fxChunk = file:read("*all")
+      file:close()
+      fxChunk = fxChunk .. 
+[[  FXID ]] .. fxGUID .. [[
+  WAK 0
+  >
+>]]
+      trackChunk = trackChunk:sub(1,-3) -- remove closing tag
+      trackChunk = trackChunk .. fxChunk
+      reaper.SetTrackStateChunk(track, trackChunk)
+    else
+      println("Could not read FX file " .. FX)
+    end
+  else
+    println("Could not create video FX " .. FX)
+  end
 end
 
 -- find Streamer and Punches tracks
@@ -74,12 +108,16 @@ if punchTrack == nil then
   reaper.InsertTrackAtIndex(0, true)
   punchTrack = reaper.GetTrack(0, 0)
   reaper.GetSetMediaTrackInfo_String(punchTrack, "P_NAME", "Punches", true)
+  
+  addVideoFX(punchTrack, "punchFX.txt")
 end
 
 if streamerTrack == nil then
   reaper.InsertTrackAtIndex(0, true)
   streamerTrack = reaper.GetTrack(0, 0)
   reaper.GetSetMediaTrackInfo_String(streamerTrack, "P_NAME", "Streamers", true)
+  
+  addVideoFX(streamerTrack, "streamerFX.txt")
 end
 
 -- clear tracks
