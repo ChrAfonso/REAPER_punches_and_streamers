@@ -33,8 +33,15 @@ else
 end
 
 dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. "CAfonso" .. pathSep
+
+-- try nested alternative
+if not reaper.file_exists(dataPath .. "update_streamers.lua") then
+  dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. "User" .. pathSep .. "CAfonso" .. pathSep
+end
+
 if not reaper.file_exists(dataPath .. "update_streamers.lua") then
   println("dataPath " .. dataPath .. " not found!")
+  return -- quit
 else
   dataPath = dataPath .. "update_streamers_data" .. pathSep
   println("dataPath: " .. dataPath)
