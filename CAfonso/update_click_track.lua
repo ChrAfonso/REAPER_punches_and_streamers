@@ -18,6 +18,7 @@ for t = 0,reaper.CountTracks(0)-1 do
     clickTrack = track;
     reaper.ShowConsoleMsg("Found Click track!\n")
   end
+  reaper.SetTrackSelected(track, false) -- deselect all for now
 end
 
 if not clickTrack then
@@ -36,7 +37,7 @@ for i = 0,numItems-1 do
   end  
 end
 
--- Create clicktrack item, mute
+-- Select click track
 reaper.SetTrackSelected(clickTrack, true)
 
 function createClickRegion(startpos, endpos)
