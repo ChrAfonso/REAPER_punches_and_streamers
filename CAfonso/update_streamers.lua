@@ -12,17 +12,10 @@
 --       current video effects...
 --       Images/videos currently pre-rendered and read in from fixed data dir.
 
---- gfx debug utility
+-- debug utility -- uncomment to show console window
 function println(stringy)
-  gfx.drawstr(stringy)
-  gfx.x = 10
-  gfx.y = gfx.y + 10
+  --reaper.ShowConsoleMsg(stringy .. "\n")
 end
-
--- Uncomment to see debug console
---gfx.init("Output", 800, 300, 0, 100, 100)
-gfx.x = 10
-gfx.y = 10
 
 -- Setup: Paths, item files, functions
 os = reaper.GetOS();
@@ -40,24 +33,12 @@ else
   println("dataPath: " .. dataPath)
 end
 
-streamers = {}
-streamers["white"] = dataPath .. "streamer_4s_white_bs.avi"
-streamers["yellow"] = dataPath .. "streamer_4s_yellow_bs.avi"
-streamers["green"] = dataPath .. "streamer_4s_green_bs.avi"
-streamers["red"] = dataPath .. "streamer_4s_red_bs.avi"
-
+-- TODO generate, or cache multiple resolution versions? Or a square image to be scaled and centered
 punch_white = dataPath .. "punch_1600x900.png"
 
-function getStreamerSource(color)
-  println("Looking for streamer in " .. color)
-  duration = 2 -- NOTE: use just one and stretch? Then omit param
-  if not streamers[color] then
-    color = "white"
-  end
-  
-  local streamerSrc = streamers[color];
-  return streamerSrc
-end
+-- Constants
+STREAMERS = "Streamers"
+PUNCHES = "Punches"
 
 function getPunchSource()
   return reaper.PCM_Source_CreateFromFile(punch_white)
@@ -117,23 +98,35 @@ end
 -- find Streamer and Punches tracks
 streamerTrack = nil
 punchTrack = nil
-for t = 0, reaper.CountTracks(0)-1 do
+local t = 0
+while t < reaper.CountTracks(0) do
   local track = reaper.GetTrack(0, t)
   local _, trackName = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
-  if trackName == "Streamers" then
-    streamerTrack = track
-    --punchTrack = track -- TEST: If bluescreen works on everything, we only need one track
-  elseif trackName == "Punches" then
+  if trackName == STREAMERS then
+    if not streamerTrack then
+      -- first one = default Streamers track
+      streamerTrack = track
+    else
+      -- additional one - clean up
+      reaper.DeleteTrack(track)
+      track = nil
+    end
+  elseif trackName == PUNCHES then
     punchTrack = track
   end
-  reaper.SetTrackSelected(track, false) -- deselect all, then select Streamer track later
+  
+  -- if not deleted
+  if track then
+    reaper.SetTrackSelected(track, false) -- deselect all, then select Streamer track later
+    t = t + 1
+  end
 end
 
 -- create new if not found -- TODO create video fx
 if punchTrack == nil then
   reaper.InsertTrackAtIndex(0, true)
   punchTrack = reaper.GetTrack(0, 0)
-  reaper.GetSetMediaTrackInfo_String(punchTrack, "P_NAME", "Punches", true)
+  reaper.GetSetMediaTrackInfo_String(punchTrack, "P_NAME", PUNCHES, true)
   
   addVideoFX(punchTrack, "punchFX.txt")
 end
@@ -141,7 +134,7 @@ end
 if streamerTrack == nil then
   reaper.InsertTrackAtIndex(0, true)
   streamerTrack = reaper.GetTrack(0, 0)
-  reaper.GetSetMediaTrackInfo_String(streamerTrack, "P_NAME", "Streamers", true)
+  reaper.GetSetMediaTrackInfo_String(streamerTrack, "P_NAME", STREAMERS, true)
   
   -- NEW: replaced with take VFX
   -- addVideoFX(streamerTrack, "streamerFX.txt")
@@ -181,8 +174,43 @@ function getColorValues(color)
   end
 end
 
+-- provide either item, or track and start/end
+function isOverlappingOtherItems(item, track, itemStart, itemEnd)
+  if item then
+    track = reaper.GetMediaItem_Track(item)
+    local itemStart = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+    local itemEnd = itemStart + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+  end
+  
+  if (track == nil) or (itemEnd <= itemStart) then
+    println("Error: invalid params to isOverlappingOtherItems (need item, or track, startTime, endTime)")
+  end
+  
+  local numItems = reaper.CountTrackMediaItems(track)
+  
+  for i = 0,numItems-1 do
+    local other = reaper.GetTrackMediaItem(track, i)
+    if other ~= item then
+      local otherStart = reaper.GetMediaItemInfo_Value(other, "D_POSITION")
+      local otherEnd = otherStart + reaper.GetMediaItemInfo_Value(other, "D_LENGTH")
+      
+      if (itemStart > otherStart and itemStart < otherEnd)
+      or (otherStart > itemStart and otherStart < itemEnd) then
+        return true
+      end
+    end
+  end
+  
+  return false
+end
+
+function RGB(r, g, b)
+  return r + g * 255 + b * (255*255)
+end
+
 clearTrack(punchTrack)
 clearTrack(streamerTrack)
+-- TODO: Clear/remove additional streamer tracks!
 
 reaper.SetTrackSelected(streamerTrack, true) -- needed for InsertMedia
 
@@ -226,12 +254,46 @@ for m = 0,numMarkers-1 do
       showPunch = true -- no color defined = default show
     end
     
+    -- prevent overlaps (vfx don't work overlapped on same track)
+    local currentIndex = reaper.GetMediaTrackInfo_Value(streamerTrack, "IP_TRACKNUMBER")
+    if (currentIndex == 0) then
+      println("Error: track number for Streamers track not found! Abort.")
+      return
+    else
+      -- track number is 1-based (0 = not found, -1 = master track), track index is 0-based
+      currentIndex = currentIndex - 1
+    end
+    
+    local currentTrack = streamerTrack
+     local l = 0
+    while l < 20 and isOverlappingOtherItems(nil, currentTrack, position - length, position) do
+       println("Loop " .. l)
+       l = l + 1
+      println("Streamer item overlaps previous streamer, trying to find/create additional Streamer tracks...")
+      
+      currentIndex = currentIndex + 1
+      currentTrack = reaper.GetTrack(0, currentIndex)
+      
+      -- check if next track already is a Streamers track
+      local retval, trackName = reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", "", false)
+      println("Checking track " .. currentIndex .. " (" .. trackName .. ")")
+      if not retval or trackName ~= STREAMERS then
+        -- else create new track in-between
+        reaper.InsertTrackAtIndex(currentIndex, false)
+        currentTrack = reaper.GetTrack(0, currentIndex)
+        reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", STREAMERS, true)
+      end
+    end
+    
+    -- insert midi item
+    local streamerItem = reaper.CreateNewMIDIItemInProj(currentTrack, position - length, position, false)
+    
     -- calculate color
     println("color: " .. color)
     local r, g, b = getColorValues(color)
     
-    -- insert midi item    
-    local streamerItem = reaper.CreateNewMIDIItemInProj(streamerTrack, position - length, position, false)
+    -- TODO: Does not work?
+    reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", RGB(r,g,b)|0x100000)
     
     -- apply vfx
     if(streamerItem) then
