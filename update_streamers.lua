@@ -1,8 +1,16 @@
 -- Streamers and Punches
 -- by Christian Afonso
+-- Feedback and bug reports to chr DOT afonso AT gmail DOT com
 --
 -- addVideoFX function based on code by eugen2777
 
+-- Changelog:
+-- ----------
+-- v0.2: Replaced prerendered streamer videos with video effects. Smoother playback and more flexibility
+--       in colors (but still pre-defined palette for now, as colors must be read in/converted
+--       from marker text). Created MIDI items are colored the same as their streamer FX.
+--       Punches stay pre-rendered image, for now (no native circle drawing in video fx).
+--
 -- v0.1: Proof of concept: Read markers and add streamer videos (in 4 colors)
 --       and punch images to Streamers/Punches tracks (created if not found).
 --       Existing tracks currently must have video effects "chroma key" for colored 
