@@ -212,7 +212,7 @@ function isOverlappingOtherItems(item, track, itemStart, itemEnd)
 end
 
 function RGB(r, g, b)
-  return r + g * 255 + b * (255*255)
+  return (r*255) + (g*255 << 8) + (b*255 << 16)
 end
 
 clearTrack(punchTrack)
@@ -300,7 +300,7 @@ for m = 0,numMarkers-1 do
     local r, g, b = getColorValues(color)
     
     -- TODO: Does not work?
-    reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", RGB(r,g,b)|0x100000)
+    reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", RGB(r,g,b)|0x1000000)
     
     -- apply vfx
     if(streamerItem) then
