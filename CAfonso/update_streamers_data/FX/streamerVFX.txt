@@ -1,0 +1,36 @@
+<TAKEFX
+	WNDRECT 24 52 655 408
+	SHOW 0
+	LASTSEL 0
+	DOCKED 0
+	BYPASS 0 0 0
+	<VIDEO_EFFECT "Video processor" ""
+	  <CODE
+		|//streamer
+		|//@param1:streamer_width 'Streamer width' 0.05 0 0.1 0
+		|//@param2:r 'r' 1 0 1 0
+		|//@param3:g 'g' 1 0 1 0
+		|//@param4:b 'b' 1 0 1 0
+		|//@param5:a 'a' 1 0 1 0
+		|//@param6:duration 'Duration' 2 0 6 0
+		|
+		|img1=input_track(0);
+		|streamer=0;
+		|!project_wh_valid && input_info(img1,w,h) ? ( project_w=w; project_h=h; );
+		|
+		|// original image
+		|gfx_blit(img1,0);
+		|
+		|// overlay streamer
+		|dw = streamer_width * project_w;
+		|x = -dw + (time / duration) * (project_w + dw); // time = item time (s)
+		|
+		|gfx_r = r;
+		|gfx_g = g;
+		|gfx_b = b;
+		|gfx_a = a;
+		|gfx_fillrect(x, 0, dw, project_h);
+	  >
+	  CODEPARM 0.1000000000 1.0000000000 1.0000000000 1.0000000000 1.0000000000 2.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000
+	>
+	FLOATPOS 0 0 0 0

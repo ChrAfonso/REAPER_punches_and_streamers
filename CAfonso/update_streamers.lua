@@ -63,23 +63,49 @@ function getPunchSource()
   return reaper.PCM_Source_CreateFromFile(punch_white)
 end
 
-function addVideoFX(track, FX)
+-- optional colors: replace in video effect params
+function addVideoFX(trackOrItem, FX, isItem, r, g, b)
   -- read cached FX chunk from text file and add to track chunk
-  local retval, trackChunk = reaper.GetTrackStateChunk(track, "", true)
+  local retval, trackOrItemChunk
+  if not isItem then
+    println("Trying to get Track state chunk...")
+    retval, trackOrItemChunk = reaper.GetTrackStateChunk(trackOrItem, "", true)
+  else
+    println("Trying to get MediaItem state chunk...")
+    retval, trackOrItemChunk = reaper.GetItemStateChunk(trackOrItem, "", true)
+  end
   if retval then
+    println("Found chunk!")
     local fxGUID = reaper.genGuid("")
     local file = io.open(dataPath .. "FX" .. pathSep .. FX, "r")
     if file then
       local fxChunk = file:read("*all")
       file:close()
+      
+      -- replace colors and set duration for item vfx
+      if isItem then
+        -- assign some defaults if not defined...
+        r = r or 0
+        g = g or 0
+        b = b or 0
+        local duration = reaper.GetMediaItemInfo_Value(trackOrItem, "D_LENGTH")
+        
+        -- replace colors, leave thickness as in template, set duration
+        fxChunk = fxChunk:gsub("CODEPARM ([0-9.]+) .*$", "CODEPARM %1 " .. r .. " " .. g .. " " .. b .. " 1 " .. duration) -- alpha 1
+      end
+      
       fxChunk = fxChunk .. 
 [[  FXID ]] .. fxGUID .. [[
   WAK 0
   >
 >]]
-      trackChunk = trackChunk:sub(1,-3) -- remove closing tag
-      trackChunk = trackChunk .. fxChunk
-      reaper.SetTrackStateChunk(track, trackChunk)
+      trackOrItemChunk = trackOrItemChunk:sub(1,-3) -- remove closing tag
+      trackOrItemChunk = trackOrItemChunk .. fxChunk
+      if not isItem then
+        reaper.SetTrackStateChunk(trackOrItem, trackOrItemChunk)
+      else
+        reaper.SetItemStateChunk(trackOrItem, trackOrItemChunk)
+      end
     else
       println("Could not read FX file " .. FX)
     end
@@ -117,7 +143,8 @@ if streamerTrack == nil then
   streamerTrack = reaper.GetTrack(0, 0)
   reaper.GetSetMediaTrackInfo_String(streamerTrack, "P_NAME", "Streamers", true)
   
-  addVideoFX(streamerTrack, "streamerFX.txt")
+  -- NEW: replaced with take VFX
+  -- addVideoFX(streamerTrack, "streamerFX.txt")
 end
 
 -- clear tracks
@@ -128,6 +155,29 @@ function clearTrack(track)
     if item then
       reaper.DeleteTrackMediaItem(track, item)
     end
+  end
+end
+
+function getColorValues(color)
+  if(color == "white") then
+    return 1, 1, 1
+  elseif(color == "red") then
+    return 1, 0, 0
+  elseif(color == "green") then
+    return 0, 1, 0
+  elseif(color == "blue") then
+    return 0, 0, 1
+  elseif(color == "yellow") then
+    return 1, 1, 0
+  elseif(color == "magenta") then
+    return 1, 0, 1
+  elseif(color == "cyan") then
+    return 0, 1, 1
+  elseif(color == "black") then
+    return 0, 0, 0
+  else
+    -- default if color unknown: white
+    return 1, 1, 1
   end
 end
 
@@ -176,19 +226,18 @@ for m = 0,numMarkers-1 do
       showPunch = true -- no color defined = default show
     end
     
+    -- calculate color
     println("color: " .. color)
+    local r, g, b = getColorValues(color)
     
-    -- create streamer
-    local streamerSrc = getStreamerSource(color)
-    if streamerSrc then
-      reaper.SetEditCurPos(position, false, false)
-      reaper.GetSet_LoopTimeRange(true, true, position - length, position, false)
-      local retval = reaper.InsertMedia(streamerSrc, 4)
-      println("InsertMedia retval: " .. retval)
-      
-      -- TODO how to do this? Have to find inserted media item
-      --reaper.SetMediaItemInfo_Value(streamerItem, "D_FADEINLEN", 0)
-      --reaper.SetMediaItemInfo_Value(streamerItem, "D_FADEOUTLEN", 0)
+    -- insert midi item    
+    local streamerItem = reaper.CreateNewMIDIItemInProj(streamerTrack, position - length, position, false)
+    
+    -- apply vfx
+    if(streamerItem) then
+      addVideoFX(streamerItem, "streamerVFX.txt", true, r, g, b)
+    else
+      println("Error creating empty MIDI item: " .. streamerItem)
     end
   end
   
