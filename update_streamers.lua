@@ -20,6 +20,9 @@
 --       current video effects...
 --       Images/videos currently pre-rendered and read in from fixed data dir.
 
+-- if you installed this script into a different subfolder of %APPDATA%/REAPER/Scripts/, change this constant
+ScriptPath = "REAPER_punches_and_streamers"
+
 -- debug utility -- uncomment to show console window
 function println(stringy)
   --reaper.ShowConsoleMsg(stringy .. "\n")
@@ -33,11 +36,11 @@ else
   pathSep = "/"
 end
 
-dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. "CAfonso" .. pathSep
+dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. ScriptPath .. pathSep
 
 -- try nested alternative
 if not reaper.file_exists(dataPath .. "update_streamers.lua") then
-  dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. "User" .. pathSep .. "CAfonso" .. pathSep
+  dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. "User" .. pathSep .. ScriptPath .. pathSep
 end
 
 if not reaper.file_exists(dataPath .. "update_streamers.lua") then
