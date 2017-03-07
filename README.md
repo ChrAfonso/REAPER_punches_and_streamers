@@ -8,9 +8,10 @@ REAPER script to overlay punches and streamers over video track. Still early ver
 things might not work all the time.
 
 Usage:
-- Put the contents of this folder (or clone this repository) into a subfolder (e.g. 
-  "PunchesAndStreamers") of %APPDATA%/Roaming/REAPER/Scripts/ (on Windows - look for 
-  analogous folder on Mac).
+- Copy this folder (or clone this repository) into %APPDATA%/Roaming/REAPER/Scripts/ 
+  (on Windows - look for analogous folder on Mac). You can change the folder name, but
+  in that case you have to change the "ScriptPath" constant at the beginning of the lua
+  file to the new folder name, so the script can find its data files.
 - Load the script in the Actions Menu (and assign a shortcut)
 - Add markers named "P" or "PUNCH" for punches, "S [N COLOR]" or "STREAMER [N COLOR]"
   for streamers (with concluding punch). Optional parameters: N = streamer duration 
