@@ -2,6 +2,8 @@ Punches and Streamers
 ---------------------
 by Christian Afonso
 
+![Alt text](/doc/screenshot1.png?raw=true "Punches and Streamers screenshot")
+
 REAPER script to overlay punches and streamers over video track. Still early version, some
 things might not work all the time.
 
