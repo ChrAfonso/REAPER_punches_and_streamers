@@ -158,13 +158,55 @@ if streamerTrack == nil then
   -- addVideoFX(streamerTrack, "streamerFX.txt")
 end
 
+-- Search chunk for notes, and parse this:
+-- <NOTES
+-- 	|foo
+-- 	|bar
+--  |...
+-- >
+function getItemNotes(item)
+	local notes = ""
+	local retval, chunk = reaper.GetItemStateChunk(item, "")
+	if retval then
+	  local inNotesBlock = false
+	  for line in (chunk.."\n"):gmatch("(.-)\n") do
+		if line:find("<NOTES") then
+		  println("  Start NOTES")
+		  inNotesBlock = true
+		elseif inNotesBlock then
+		  if not line:find("|") then
+			println("  End NOTES")
+			inNotesBlock = false
+		  else -- Notes line beginning with |
+			println("    Notes found: " ..  line)
+			notes = notes .. line .. "\n"
+		  end
+		end
+	  end
+	end
+	
+	if notes ~= "" then
+		return notes
+	else
+		return nil
+	end
+end
+
 -- clear tracks
-function clearTrack(track)
+function clearTrack(track, leaveTextItems)
   local numItems = reaper.GetTrackNumMediaItems(track)
   for i = 0,numItems-1 do
     local item = reaper.GetTrackMediaItem(track, 0) -- delete from the front
     if item then
-      reaper.DeleteTrackMediaItem(track, item)
+	  local delete = true
+	  
+	  if leaveTextItems and getItemNotes(item) then
+		delete = false
+      end
+	  
+      if delete then
+	    reaper.DeleteTrackMediaItem(track, item)
+	  end
     end
   end
 end
@@ -227,7 +269,7 @@ function RGB(r, g, b)
 end
 
 clearTrack(punchTrack)
-clearTrack(streamerTrack)
+clearTrack(streamerTrack, true)
 -- TODO: Clear/remove additional streamer tracks!
 
 reaper.SetTrackSelected(streamerTrack, true) -- needed for InsertMedia
