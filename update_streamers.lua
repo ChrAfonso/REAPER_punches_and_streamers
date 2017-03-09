@@ -25,7 +25,7 @@ ScriptPath = "REAPER_punches_and_streamers"
 
 -- debug utility -- uncomment to show console window
 function println(stringy)
-  reaper.ShowConsoleMsg((stringy or "") .. "\n")
+  --reaper.ShowConsoleMsg((stringy or "") .. "\n")
 end
 
 -- Setup: Paths, item files, functions
@@ -225,7 +225,7 @@ function getItemColor(item)
 	end
 end
 
--- clear tracks
+-- clear tracks and add FX to manual streamers (TODO: move this out to somewhere else)
 function clearTrack(track, leaveTextItems)
   local numItems = reaper.GetTrackNumMediaItems(track)
   local index = 0 -- should stay 0 (deleting items from the front) unless items are left, then go on to the next
@@ -241,11 +241,14 @@ function clearTrack(track, leaveTextItems)
 		-- Other possibility to detect manual items: no marker at end!
 		local color = getItemColor(item)
 		if color then
+		  if reaper.GetMediaItemNumTakes(item) < 1 then 
+		    reaper.AddTakeToMediaItem(item)
+		  end
+		  
 		  local r, g, b = getColorValues(color)
 		  addVideoFX(item, "streamerVFX.txt", true, r, g, b)
 		  
 		  -- Punch? marked by "P" note
-		  println("--- Notes: --" .. notes .. "--")
 		  if notes == "P" then
 		    insertPunch(reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))
 		  end
