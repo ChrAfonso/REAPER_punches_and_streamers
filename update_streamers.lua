@@ -25,7 +25,7 @@ ScriptPath = "REAPER_punches_and_streamers"
 
 -- debug utility -- uncomment to show console window
 function println(stringy)
-  --reaper.ShowConsoleMsg(stringy .. "\n")
+  reaper.ShowConsoleMsg((stringy or "") .. "\n")
 end
 
 -- Setup: Paths, item files, functions
@@ -60,6 +60,18 @@ PUNCHES = "Punches"
 
 function getPunchSource()
   return reaper.PCM_Source_CreateFromFile(punch_white)
+end
+
+function insertPunch(position, punchNum)
+	local punchItem = reaper.AddMediaItemToTrack(punchTrack)
+    local punchTake = reaper.AddTakeToMediaItem(punchItem)
+    local punchSource = getPunchSource()
+    reaper.GetSetMediaItemTakeInfo_String(punchTake, "P_NAME", "Item P" .. (punchNum or ""), true)
+    reaper.SetMediaItemTake_Source(punchTake, punchSource)
+    reaper.SetMediaItemPosition(punchItem, position, false)
+    reaper.SetMediaItemLength(punchItem, 0.08, false) -- duration = 2 typical frames
+    reaper.SetMediaItemInfo_Value(punchItem, "D_FADEINLEN", 0)
+    reaper.SetMediaItemInfo_Value(punchItem, "D_FADEOUTLEN", 0)
 end
 
 -- optional colors: replace in video effect params
@@ -171,15 +183,15 @@ function getItemNotes(item)
 	  local inNotesBlock = false
 	  for line in (chunk.."\n"):gmatch("(.-)\n") do
 		if line:find("<NOTES") then
-		  println("  Start NOTES")
 		  inNotesBlock = true
 		elseif inNotesBlock then
 		  if not line:find("|") then
-			println("  End NOTES")
 			inNotesBlock = false
 		  else -- Notes line beginning with |
-			println("    Notes found: " ..  line)
-			notes = notes .. line .. "\n"
+		    if notes ~= "" then 
+			  notes = notes .. "\n"
+			end
+			notes = notes .. line:gsub(".*|", "")
 		  end
 		end
 	  end
@@ -192,27 +204,69 @@ function getItemNotes(item)
 	end
 end
 
+function getItemColor(item)
+	local color = nil
+	local retval, chunk = reaper.GetItemStateChunk(item, "")
+	if retval then
+	  for line in (chunk.."\n"):gmatch("(.-)\n") do
+		if line:find("COLOR") then
+		  local m = line:match(".*COLOR ([0-9]+) R.*")
+		  if m then
+			color = m
+		  end
+		end
+	  end
+	end
+	
+	if color then
+		return color
+	else
+		return nil
+	end
+end
+
 -- clear tracks
 function clearTrack(track, leaveTextItems)
   local numItems = reaper.GetTrackNumMediaItems(track)
+  local index = 0 -- should stay 0 (deleting items from the front) unless items are left, then go on to the next
   for i = 0,numItems-1 do
-    local item = reaper.GetTrackMediaItem(track, 0) -- delete from the front
+    local item = reaper.GetTrackMediaItem(track, index) -- delete from the front
     if item then
 	  local delete = true
-	  
-	  if leaveTextItems and getItemNotes(item) then
+	  local notes = getItemNotes(item)
+	  if leaveTextItems and notes then
 		delete = false
+		
+		-- TODO move out to somewhere more appropriate!
+		-- Other possibility to detect manual items: no marker at end!
+		local color = getItemColor(item)
+		if color then
+		  local r, g, b = getColorValues(color)
+		  addVideoFX(item, "streamerVFX.txt", true, r, g, b)
+		  
+		  -- Punch? marked by "P" note
+		  println("--- Notes: --" .. notes .. "--")
+		  if notes == "P" then
+		    insertPunch(reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))
+		  end
+		end
       end
 	  
       if delete then
 	    reaper.DeleteTrackMediaItem(track, item)
+	  else
+	    index = index + 1
 	  end
     end
   end
 end
 
 function getColorValues(color)
-  if(color == "white") then
+  local asnum = tonumber(color)
+  if(type(asnum) == "number") then
+    println("Color number value!")
+    return (asnum&0xFF)/255, ((asnum&0xFF00) >> 8)/255, ((asnum&0xFF0000) >> 16)/255
+  elseif(color == "white") then
     return 1, 1, 1
   elseif(color == "red") then
     return 1, 0, 0
@@ -352,7 +406,6 @@ for m = 0,numMarkers-1 do
     println("color: " .. color)
     local r, g, b = getColorValues(color)
     
-    -- TODO: Does not work?
     reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", RGB(r,g,b)|0x1000000)
     
     -- apply vfx
@@ -364,16 +417,7 @@ for m = 0,numMarkers-1 do
   end
   
   if (markerName == "P") or (markerName == "PUNCH") or showPunch then
-    -- insert punch
-    local punchItem = reaper.AddMediaItemToTrack(punchTrack)
-    local punchTake = reaper.AddTakeToMediaItem(punchItem)
-    local punchSource = getPunchSource()
-    reaper.GetSetMediaItemTakeInfo_String(punchTake, "P_NAME", "Item P" .. m, true)
-    reaper.SetMediaItemTake_Source(punchTake, punchSource)
-    reaper.SetMediaItemPosition(punchItem, position, false)
-    reaper.SetMediaItemLength(punchItem, 0.08, false) -- duration = 2 typical frames
-    reaper.SetMediaItemInfo_Value(punchItem, "D_FADEINLEN", 0)
-    reaper.SetMediaItemInfo_Value(punchItem, "D_FADEOUTLEN", 0)
+    insertPunch(position, m)
   end
 end
 
