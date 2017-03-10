@@ -20,12 +20,66 @@
 --       current video effects...
 --       Images/videos currently pre-rendered and read in from fixed data dir.
 
+-- Constants
+-- Track name defaults
+STREAMERS = "Streamers"
+PUNCHES = "Punches"
+
 -- if you installed this script into a different subfolder of %APPDATA%/REAPER/Scripts/, change this constant
+-- TODO can this be read with reaper.get_action_context()?
 ScriptPath = "REAPER_punches_and_streamers"
 
--- debug utility -- uncomment to show console window
+-- loaded on demand from settings.lua
+-- settings.lua should have the form:
+-- settings = {
+--   name1 = value1,
+--   name2 = {
+--     name3 = value3,
+--     name4 = value4
+--   }
+--   ...
+-- }
+settings = nil
+
+function loadSettings()
+	local f = io.open(dataPath .. "settings.lua", "r")
+	if f then
+		local settingsdef = f:read("*all")
+		f:close()
+		
+		settingsfunc = assert(load(settingsdef))
+		if settingsfunc then
+			settingsfunc()
+			if not settings then
+				settings = { read_settings = false }
+			end
+		end
+	  
+		println("Settings:")
+		println("---------")
+		for k,v in pairs(settings) do
+			println("  " .. k .. ": " .. tostring(v))
+		end
+	else
+		println("Error: Could not open Streamers and Punches settings file")
+		settings = {}
+	end
+end
+
+function readSetting(name)
+  -- read file?
+  if not settings then
+    loadSettings()
+  end
+  
+  return settings[name]
+end
+
+-- debug utility
 function println(stringy)
-  --reaper.ShowConsoleMsg((stringy or "") .. "\n")
+  if readSetting("show_console") then
+	reaper.ShowConsoleMsg((stringy or "") .. "\n")
+  end
 end
 
 -- Setup: Paths, item files, functions
@@ -54,16 +108,12 @@ end
 -- TODO generate, or cache multiple resolution versions? Or a square image to be scaled and centered
 punch_white = dataPath .. "punch_1600x900.png"
 
--- Constants
-STREAMERS = "Streamers"
-PUNCHES = "Punches"
-
 function getPunchSource()
   return reaper.PCM_Source_CreateFromFile(punch_white)
 end
 
 function insertPunch(position, punchNum)
-	local punchItem = reaper.AddMediaItemToTrack(punchTrack)
+    local punchItem = reaper.AddMediaItemToTrack(punchTrack)
     local punchTake = reaper.AddTakeToMediaItem(punchItem)
     local punchSource = getPunchSource()
     reaper.GetSetMediaItemTakeInfo_String(punchTake, "P_NAME", "Item P" .. (punchNum or ""), true)
@@ -99,10 +149,11 @@ function addVideoFX(trackOrItem, FX, isItem, r, g, b)
         r = r or 0
         g = g or 0
         b = b or 0
+		local width = readSetting("streamer_width") or 0.1
         local duration = reaper.GetMediaItemInfo_Value(trackOrItem, "D_LENGTH")
         
-        -- replace colors, leave thickness as in template, set duration
-        fxChunk = fxChunk:gsub("CODEPARM ([0-9.]+) .*$", "CODEPARM %1 " .. r .. " " .. g .. " " .. b .. " 1 " .. duration) -- alpha 1
+        -- replace colors, set thickness, set duration
+        fxChunk = fxChunk:gsub("CODEPARM .*$", "CODEPARM " .. width .. " " .. r .. " " .. g .. " " .. b .. " 1 " .. duration) -- alpha 1
       end
       
       fxChunk = fxChunk .. 
@@ -172,57 +223,57 @@ end
 
 -- Search chunk for notes, and parse this:
 -- <NOTES
--- 	|foo
--- 	|bar
+--     |foo
+--     |bar
 --  |...
 -- >
 function getItemNotes(item)
-	local notes = ""
-	local retval, chunk = reaper.GetItemStateChunk(item, "")
-	if retval then
-	  local inNotesBlock = false
-	  for line in (chunk.."\n"):gmatch("(.-)\n") do
-		if line:find("<NOTES") then
-		  inNotesBlock = true
-		elseif inNotesBlock then
-		  if not line:find("|") then
-			inNotesBlock = false
-		  else -- Notes line beginning with |
-		    if notes ~= "" then 
-			  notes = notes .. "\n"
-			end
-			notes = notes .. line:gsub(".*|", "")
-		  end
-		end
-	  end
-	end
-	
-	if notes ~= "" then
-		return notes
-	else
-		return nil
-	end
+    local notes = ""
+    local retval, chunk = reaper.GetItemStateChunk(item, "")
+    if retval then
+      local inNotesBlock = false
+      for line in (chunk.."\n"):gmatch("(.-)\n") do
+        if line:find("<NOTES") then
+          inNotesBlock = true
+        elseif inNotesBlock then
+          if not line:find("|") then
+            inNotesBlock = false
+          else -- Notes line beginning with |
+            if notes ~= "" then 
+              notes = notes .. "\n"
+            end
+            notes = notes .. line:gsub(".*|", "")
+          end
+        end
+      end
+    end
+    
+    if notes ~= "" then
+        return notes
+    else
+        return nil
+    end
 end
 
 function getItemColor(item)
-	local color = nil
-	local retval, chunk = reaper.GetItemStateChunk(item, "")
-	if retval then
-	  for line in (chunk.."\n"):gmatch("(.-)\n") do
-		if line:find("COLOR") then
-		  local m = line:match(".*COLOR ([0-9]+) R.*")
-		  if m then
-			color = m
-		  end
-		end
-	  end
-	end
-	
-	if color then
-		return color
-	else
-		return nil
-	end
+    local color = nil
+    local retval, chunk = reaper.GetItemStateChunk(item, "")
+    if retval then
+      for line in (chunk.."\n"):gmatch("(.-)\n") do
+        if line:find("COLOR") then
+          local m = line:match(".*COLOR ([0-9]+) R.*")
+          if m then
+            color = m
+          end
+        end
+      end
+    end
+    
+    if color then
+        return color
+    else
+        return nil
+    end
 end
 
 -- clear tracks and add FX to manual streamers (TODO: move this out to somewhere else)
@@ -232,34 +283,34 @@ function clearTrack(track, leaveTextItems)
   for i = 0,numItems-1 do
     local item = reaper.GetTrackMediaItem(track, index) -- delete from the front
     if item then
-	  local delete = true
-	  local notes = getItemNotes(item)
-	  if leaveTextItems and notes then
-		delete = false
-		
-		-- TODO move out to somewhere more appropriate!
-		-- Other possibility to detect manual items: no marker at end!
-		local color = getItemColor(item)
-		if color then
-		  if reaper.GetMediaItemNumTakes(item) < 1 then 
-		    reaper.AddTakeToMediaItem(item)
-		  end
-		  
-		  local r, g, b = getColorValues(color)
-		  addVideoFX(item, "streamerVFX.txt", true, r, g, b)
-		  
-		  -- Punch? marked by "P" note
-		  if notes == "P" then
-		    insertPunch(reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))
-		  end
-		end
+      local delete = true
+      local notes = getItemNotes(item)
+      if leaveTextItems and notes then
+        delete = false
+        
+        -- TODO move out to somewhere more appropriate!
+        -- Other possibility to detect manual items: no marker at end!
+        local color = getItemColor(item)
+        if color then
+          if reaper.GetMediaItemNumTakes(item) < 1 then 
+            reaper.AddTakeToMediaItem(item)
+          end
+          
+          local r, g, b = getColorValues(color)
+          addVideoFX(item, "streamerVFX.txt", true, r, g, b)
+          
+          -- Punch? marked by "P" note
+          if notes == "P" then
+            insertPunch(reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))
+          end
+        end
       end
-	  
+      
       if delete then
-	    reaper.DeleteTrackMediaItem(track, item)
-	  else
-	    index = index + 1
-	  end
+        reaper.DeleteTrackMediaItem(track, item)
+      else
+        index = index + 1
+      end
     end
   end
 end
