@@ -28,6 +28,9 @@ if not clickTrack then
   reaper.GetSetMediaTrackInfo_String(clickTrack, "P_NAME", "Click", true)
 end
 
+-- Select click track
+reaper.SetTrackSelected(clickTrack, true)
+
 -- Cleanup
 local numItems = reaper.GetTrackNumMediaItems(clickTrack)
 for i = 0,numItems-1 do
@@ -37,8 +40,6 @@ for i = 0,numItems-1 do
   end  
 end
 
--- Select click track
-reaper.SetTrackSelected(clickTrack, true)
 
 function createClickRegion(startpos, endpos)
   reaper.ShowConsoleMsg("Create click region.\n")

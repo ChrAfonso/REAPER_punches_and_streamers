@@ -25,9 +25,35 @@
 STREAMERS = "Streamers"
 PUNCHES = "Punches"
 
--- if you installed this script into a different subfolder of %APPDATA%/REAPER/Scripts/, change this constant
--- TODO can this be read with reaper.get_action_context()?
-ScriptPath = "REAPER_punches_and_streamers"
+-- Setup: Paths, item files, functions
+os = reaper.GetOS();
+if(os == "Win32" or os == "Win64") then
+  pathSep = "\\"
+else
+  pathSep = "/"
+end
+
+local _, fullScriptPath = reaper.get_action_context()
+fullScriptPath = fullScriptPath:gsub("[^/\\]*$", "")
+
+dataPath = fullScriptPath .. "update_streamers_data" .. pathSep
+-- TODO check existence
+
+-- open io scripts
+local io_file = io.open(fullScriptPath .. "file_io.lua", "r")
+if io_file then
+  local file_io = assert(load(io_file:read("*all")))
+  io_file:close()
+  if file_io then
+    file_io()
+  else
+    reaper.ShowConsoleMsg("Error: Could not read file_io for Streamers and Punches! Aborting.")
+    return
+  end
+else
+  reaper.ShowConsoleMsg("Error: Could not open file_io for Streamers and Punches! Aborting.")
+  return
+end
 
 -- loaded on demand from settings.lua
 -- settings.lua should have the form:
@@ -41,68 +67,11 @@ ScriptPath = "REAPER_punches_and_streamers"
 -- }
 settings = nil
 
-function loadSettings()
-	local f = io.open(dataPath .. "settings.lua", "r")
-	if f then
-		local settingsdef = f:read("*all")
-		f:close()
-		
-		settingsfunc = assert(load(settingsdef))
-		if settingsfunc then
-			settingsfunc()
-			if not settings then
-				settings = { read_settings = false }
-			end
-		end
-	  
-		println("Settings:")
-		println("---------")
-		for k,v in pairs(settings) do
-			println("  " .. k .. ": " .. tostring(v))
-		end
-	else
-		println("Error: Could not open Streamers and Punches settings file")
-		settings = {}
-	end
-end
-
-function readSetting(name)
-  -- read file?
-  if not settings then
-    loadSettings()
-  end
-  
-  return settings[name]
-end
-
 -- debug utility
 function println(stringy)
   if readSetting("show_console") then
 	reaper.ShowConsoleMsg((stringy or "") .. "\n")
   end
-end
-
--- Setup: Paths, item files, functions
-os = reaper.GetOS();
-if(os == "Win32" or os == "Win64") then
-  pathSep = "\\"
-else
-  pathSep = "/"
-end
-
-dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. ScriptPath .. pathSep
-
--- try nested alternative
-if not reaper.file_exists(dataPath .. "update_streamers.lua") then
-  dataPath = reaper.GetResourcePath() .. pathSep .. "Scripts" .. pathSep .. "User" .. pathSep .. ScriptPath .. pathSep
-end
-
-if not reaper.file_exists(dataPath .. "update_streamers.lua") then
-  println("dataPath " .. dataPath .. " not found!")
-  return -- quit
-else
-  dataPath = dataPath .. "update_streamers_data" .. pathSep
-  println("dataPath: " .. dataPath)
 end
 
 -- TODO generate, or cache multiple resolution versions? Or a square image to be scaled and centered
