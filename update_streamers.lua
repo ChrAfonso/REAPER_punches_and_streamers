@@ -35,10 +35,7 @@ end
 
 _,ScriptPath = reaper.get_action_context()
 ScriptPath = ScriptPath:gsub("[^" .. pathSep .. "]+$", "") -- remove filename
-reaper.ShowConsoleMsg("Script path: " .. ScriptPath .. "\n")
-
 dataPath = ScriptPath .. "update_streamers_data" .. pathSep
-reaper.ShowConsoleMsg("Base dataPath: " .. dataPath .. "\n")
 
 -- loaded on demand from settings.lua
 -- settings.lua should have the form:
@@ -53,7 +50,6 @@ reaper.ShowConsoleMsg("Base dataPath: " .. dataPath .. "\n")
 settings = nil
 
 function loadSettings()
-	reaper.ShowConsoleMsg("Settings path: " .. dataPath .. "settings.lua\n")
 	local f = io.open(dataPath .. "settings.lua", "r")
 	if f then
 		local settingsdef = f:read("*all")
@@ -90,12 +86,13 @@ end
 -- debug utility
 function println(stringy)
   if readSetting("show_console") then
-	reaper.ShowConsoleMsg((stringy or "") .. "\n")
+	println((stringy or ""))
   end
 end
 
--- TODO generate, or cache multiple resolution versions? Or a square image to be scaled and centered
-punch_white = dataPath .. "punch_1600x900.png"
+-- TODO generate when circle drawing is possible in VFX script
+-- square image will be scaled and centered
+punch_white = dataPath .. "punch_900x900.png"
 
 function getPunchSource()
   return reaper.PCM_Source_CreateFromFile(punch_white)
