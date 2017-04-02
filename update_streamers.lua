@@ -34,7 +34,7 @@ else
 end
 
 local _, fullScriptPath = reaper.get_action_context()
-fullScriptPath = fullScriptPath:gsub("[^/\\]*$", "")
+fullScriptPath = fullScriptPath:gsub("[^/\\]*$", "") -- store script dir, remove script filename at end
 
 dataPath = fullScriptPath .. "update_streamers_data" .. pathSep
 -- TODO check existence
@@ -172,7 +172,7 @@ while t < reaper.CountTracks(0) do
   end
 end
 
--- create new if not found -- TODO create video fx
+-- create new if not found
 if punchTrack == nil then
   reaper.InsertTrackAtIndex(0, true)
   punchTrack = reaper.GetTrack(0, 0)
@@ -185,9 +185,6 @@ if streamerTrack == nil then
   reaper.InsertTrackAtIndex(0, true)
   streamerTrack = reaper.GetTrack(0, 0)
   reaper.GetSetMediaTrackInfo_String(streamerTrack, "P_NAME", STREAMERS, true)
-  
-  -- NEW: replaced with take VFX
-  -- addVideoFX(streamerTrack, "streamerFX.txt")
 end
 
 -- Search chunk for notes, and parse this:
