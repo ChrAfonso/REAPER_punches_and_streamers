@@ -241,6 +241,37 @@ function getItemNotes(item)
     end
 end
 
+function getMarker(index)
+  local _, _, position, _, markerName, _ = reaper.EnumProjectMarkers(index)
+  return position, markerName
+end
+
+function getItemStartEnd(item)
+  local itemStart = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+  local itemEnd = itemStart + reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
+  return itemStart, itemEnd
+end
+
+-- returns true if the item has a streamer marker at the end
+function hasMarkerAtEnd(item)
+    local _, endPosition = getItemStartEnd(item)
+    
+    local numMarkers = reaper.CountProjectMarkers(0)
+    for m = 0,numMarkers-1 do
+      local position, name = getMarker(m)
+      
+      -- TODO error margin? Or is precise position fine?
+      if endPosition == position then
+        if name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
+          -- TODO check color?
+          return true
+        end
+      end
+    end
+
+    return false -- TEMP WIP: this will leave all generated items!
+end
+
 function getItemColor(item)
     local color = nil
     local retval, chunk = reaper.GetItemStateChunk(item, "")
@@ -270,7 +301,7 @@ function clearTrack(track, leaveTextItems)
     local item = reaper.GetTrackMediaItem(track, index) -- delete from the front
     if item then
       local delete = true
-      local notes = getItemNotes(item)
+      local notes = getItemNotes(item) or not hasMarkerAtEnd(item)
       if leaveTextItems and notes then
         delete = false
         
