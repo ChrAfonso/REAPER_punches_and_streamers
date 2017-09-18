@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<index version="1" name="ChrAfonso REAPER scripts">
+  <category name="Film Scoring">
+    <reapack name="update_streamers.lua" type="script" desc="Update Streamers and Punches from Markers">
+	  <version name="0.3" author="ChrAfonso">
+	    <source file="update_streamers.lua">https://github.com/ChrAfonso/REAPER_punches_and_streamers/tree/master/update_streamers.lua</source>
+		<source file="update_streamers_data/punch_900x900.png">https://github.com/ChrAfonso/REAPER_punches_and_streamers/tree/master/update_streamers_data/punch_900x900.png</source>
+		<source file="update_streamers_data/settings.lua">https://github.com/ChrAfonso/REAPER_punches_and_streamers/tree/master/update_streamers_data/settings.lua</source>
+		<source file="update_streamers_data/FX/removeblack_punches.RfxChain">https://github.com/ChrAfonso/REAPER_punches_and_streamers/tree/master/update_streamers_data/FX/removeblack_punches.RfxChain</source>
+		<source file="update_streamers_data/FX/punchFX.txt">https://github.com/ChrAfonso/REAPER_punches_and_streamers/tree/master/update_streamers_data/FX/punchFX.txt</source>
+		<source file="update_streamers_data/FX/streamerVFX.txt">https://github.com/ChrAfonso/REAPER_punches_and_streamers/tree/master/update_streamers_data/FX/streamerVFX.txt</source>
+	  </version>
+	</reapack>
+	<reapack name="update_click_track.lua" type="script" desc="Update Click Track from Markers">
+	  <version name="0.1">
+	    <source file="update_click_track.lua"/>https://github.com/ChrAfonso/REAPER_punches_and_streamers/tree/master/update_streamers_data/update_click_track.lua</source>
+	  </version>
+	</reapack>
+  </category>
+</index>
