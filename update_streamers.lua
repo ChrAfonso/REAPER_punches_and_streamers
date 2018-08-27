@@ -336,7 +336,7 @@ function getColorValues(color)
   local asnum = tonumber(color)
   if(type(asnum) == "number") then
     println("Color number value!")
-    return (asnum&0xFF)/255, ((asnum&0xFF00) >> 8)/255, ((asnum&0xFF0000) >> 16)/255
+    return ((asnum&0xFF0000) >> 16)/255, ((asnum&0xFF00) >> 8)/255, (asnum&0xFF)/255
   elseif(color == "white") then
     return 1, 1, 1
   elseif(color == "red") then
