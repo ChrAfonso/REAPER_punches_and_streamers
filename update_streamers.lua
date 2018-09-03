@@ -57,28 +57,28 @@ dataPath = ScriptPath .. "update_streamers_data" .. pathSep
 settings = nil
 
 function loadSettings()
-	local f = io.open(dataPath .. "settings.lua", "r")
-	if f then
-		local settingsdef = f:read("*all")
-		f:close()
-		
-		settingsfunc = assert(load(settingsdef))
-		if settingsfunc then
-			settingsfunc()
-			if not settings then
-				settings = { read_settings = false }
-			end
-		end
-	  
-		println("Settings:")
-		println("---------")
-		for k,v in pairs(settings) do
-			println("  " .. k .. ": " .. tostring(v))
-		end
-	else
-		println("Error: Could not open Streamers and Punches settings file")
-		settings = {}
-	end
+  local f = io.open(dataPath .. "settings.lua", "r")
+  if f then
+    local settingsdef = f:read("*all")
+    f:close()
+    
+    settingsfunc = assert(load(settingsdef))
+    if settingsfunc then
+      settingsfunc()
+      if not settings then
+        settings = { read_settings = false }
+      end
+    end
+    
+    println("Settings:")
+    println("---------")
+    for k,v in pairs(settings) do
+      println("  " .. k .. ": " .. tostring(v))
+    end
+  else
+    println("Error: Could not open Streamers and Punches settings file")
+    settings = {}
+  end
 end
 
 function readSetting(name)
@@ -93,7 +93,7 @@ end
 -- debug utility
 function println(stringy)
   if readSetting("show_console") then
-	println((stringy or ""))
+  println((stringy or ""))
   end
 end
 
@@ -106,15 +106,15 @@ function getPunchSource()
 end
 
 function insertPunch(position, punchNum)
-    local punchItem = reaper.AddMediaItemToTrack(punchTrack)
-    local punchTake = reaper.AddTakeToMediaItem(punchItem)
-    local punchSource = getPunchSource()
-    reaper.GetSetMediaItemTakeInfo_String(punchTake, "P_NAME", "Item P" .. (punchNum or ""), true)
-    reaper.SetMediaItemTake_Source(punchTake, punchSource)
-    reaper.SetMediaItemPosition(punchItem, position, false)
-    reaper.SetMediaItemLength(punchItem, 0.08, false) -- duration = 2 typical frames
-    reaper.SetMediaItemInfo_Value(punchItem, "D_FADEINLEN", 0)
-    reaper.SetMediaItemInfo_Value(punchItem, "D_FADEOUTLEN", 0)
+  local punchItem = reaper.AddMediaItemToTrack(punchTrack)
+  local punchTake = reaper.AddTakeToMediaItem(punchItem)
+  local punchSource = getPunchSource()
+  reaper.GetSetMediaItemTakeInfo_String(punchTake, "P_NAME", "Item P" .. (punchNum or ""), true)
+  reaper.SetMediaItemTake_Source(punchTake, punchSource)
+  reaper.SetMediaItemPosition(punchItem, position, false)
+  reaper.SetMediaItemLength(punchItem, 0.08, false) -- duration = 2 typical frames
+  reaper.SetMediaItemInfo_Value(punchItem, "D_FADEINLEN", 0)
+  reaper.SetMediaItemInfo_Value(punchItem, "D_FADEOUTLEN", 0)
 end
 
 -- optional colors: replace in video effect params
@@ -142,7 +142,7 @@ function addVideoFX(trackOrItem, FX, isItem, r, g, b)
         r = r or 0
         g = g or 0
         b = b or 0
-		local width = readSetting("streamer_width") or 0.1
+        local width = readSetting("streamer_width") or 0.1
         local duration = reaper.GetMediaItemInfo_Value(trackOrItem, "D_LENGTH")
         
         -- replace colors, set thickness, set duration
@@ -221,31 +221,31 @@ end
 --  |...
 -- >
 function getItemNotes(item)
-    local notes = ""
-    local retval, chunk = reaper.GetItemStateChunk(item, "")
-    if retval then
-      local inNotesBlock = false
-      for line in (chunk.."\n"):gmatch("(.-)\n") do
-        if line:find("<NOTES") then
-          inNotesBlock = true
-        elseif inNotesBlock then
-          if not line:find("|") then
-            inNotesBlock = false
-          else -- Notes line beginning with |
-            if notes ~= "" then 
-              notes = notes .. "\n"
-            end
-            notes = notes .. line:gsub(".*|", "")
+  local notes = ""
+  local retval, chunk = reaper.GetItemStateChunk(item, "")
+  if retval then
+    local inNotesBlock = false
+    for line in (chunk.."\n"):gmatch("(.-)\n") do
+      if line:find("<NOTES") then
+        inNotesBlock = true
+      elseif inNotesBlock then
+        if not line:find("|") then
+          inNotesBlock = false
+        else -- Notes line beginning with |
+          if notes ~= "" then 
+            notes = notes .. "\n"
           end
+          notes = notes .. line:gsub(".*|", "")
         end
       end
     end
-    
-    if notes ~= "" then
-        return notes
-    else
-        return nil
-    end
+  end
+  
+  if notes ~= "" then
+    return notes
+  else
+    return nil
+  end
 end
 
 function getMarker(index)
@@ -261,43 +261,43 @@ end
 
 -- returns true if the item has a streamer marker at the end
 function hasMarkerAtEnd(item)
-    local _, endPosition = getItemStartEnd(item)
+  local _, endPosition = getItemStartEnd(item)
+  
+  local numMarkers = reaper.CountProjectMarkers(0)
+  for m = 0,numMarkers-1 do
+    local position, name = getMarker(m)
     
-    local numMarkers = reaper.CountProjectMarkers(0)
-    for m = 0,numMarkers-1 do
-      local position, name = getMarker(m)
-      
-      -- TODO error margin? Or is precise position fine?
-      if endPosition == position then
-        if name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
-          -- TODO check color?
-          return true
-        end
+    -- TODO error margin? Or is precise position fine?
+    if endPosition == position then
+      if name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
+        -- TODO check color?
+        return true
       end
     end
+  end
 
-    return false -- TEMP WIP: this will leave all generated items!
+  return false -- TEMP WIP: this will leave all generated items!
 end
 
 function getItemColor(item)
-    local color = nil
-    local retval, chunk = reaper.GetItemStateChunk(item, "")
-    if retval then
-      for line in (chunk.."\n"):gmatch("(.-)\n") do
-        if line:find("COLOR") then
-          local m = line:match(".*COLOR ([0-9]+) R.*")
-          if m then
-            color = m
-          end
+  local color = nil
+  local retval, chunk = reaper.GetItemStateChunk(item, "")
+  if retval then
+    for line in (chunk.."\n"):gmatch("(.-)\n") do
+      if line:find("COLOR") then
+        local m = line:match(".*COLOR ([0-9]+) R.*")
+        if m then
+          color = m
         end
       end
     end
-    
-    if color then
-        return color
-    else
-        return nil
-    end
+  end
+  
+  if color then
+    return color
+  else
+    return nil
+  end
 end
 
 -- clear tracks and add FX to manual streamers (TODO: move this out to somewhere else)
@@ -459,8 +459,8 @@ for m = 0,numMarkers-1 do
     local currentTrack = streamerTrack
      local l = 0
     while l < 20 and isOverlappingOtherItems(nil, currentTrack, position - length, position) do
-       println("Loop " .. l)
-       l = l + 1
+      println("Loop " .. l)
+      l = l + 1
       println("Streamer item overlaps previous streamer, trying to find/create additional Streamer tracks...")
       
       currentIndex = currentIndex + 1
