@@ -12,8 +12,8 @@
 	  </version>
 	</reapack>
 	<reapack name="update_click_track.lua" type="script" desc="Update Click Track from Markers">
-	  <version name="0.1">
-	    <source main="main" file="update_click_track.lua">https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/v0.3/update_click_track.lua</source>
+	  <version name="0.1" author="ChrAfonso">
+	    <source main="true" file="update_click_track.lua">https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/v0.3/update_click_track.lua</source>
 	  </version>
 	</reapack>
   </category>
