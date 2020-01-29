@@ -259,6 +259,26 @@ function getItemStartEnd(item)
   return itemStart, itemEnd
 end
 
+-- returns true if the item has a punch marker at the start
+function hasMarkerAtStart(item)
+  local startPosition, _ = getItemStartEnd(item)
+  
+  local numMarkers = reaper.CountProjectMarkers(0)
+  for m = 0,numMarkers-1 do
+    local position, name = getMarker(m)
+    
+    -- TODO error margin? Or is precise position fine?
+    -- TODO check for - at end of streamer markers
+    if startPosition == position then
+      if name == "P" or name == "PUNCH" or name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
+        return true
+      end
+    end
+  end
+
+  return false -- TEMP WIP: this will leave all generated items!
+end
+
 -- returns true if the item has a streamer marker at the end
 function hasMarkerAtEnd(item)
   local _, endPosition = getItemStartEnd(item)
@@ -301,7 +321,7 @@ function getItemColor(item)
 end
 
 -- clear tracks and add FX to manual streamers (TODO: move this out to somewhere else)
-function clearTrack(track, leaveTextItems)
+function clearTrack(track, leaveTextItems, leaveUnmarkedPunches)
   local numItems = reaper.GetTrackNumMediaItems(track)
   local index = 0 -- should stay 0 (deleting items from the front) unless items are left, then go on to the next
   for i = 0,numItems-1 do
@@ -328,6 +348,11 @@ function clearTrack(track, leaveTextItems)
             insertPunch(reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))
           end
         end
+      end
+      
+      -- don't delete punches that won't get regenerated
+      if track == punchTrack and leaveUnmarkedPunches and not hasMarkerAtStart(item) then
+        delete = false
       end
       
       if delete then
@@ -400,7 +425,7 @@ function RGB(r, g, b)
   return (r*255) + (g*255 << 8) + (b*255 << 16)
 end
 
-clearTrack(punchTrack)
+clearTrack(punchTrack, false, true)
 clearTrack(streamerTrack, true)
 -- TODO: Clear/remove additional streamer tracks!
 
