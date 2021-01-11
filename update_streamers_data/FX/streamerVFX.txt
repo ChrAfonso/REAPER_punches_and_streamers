@@ -8,11 +8,14 @@
 	  <CODE
 		|//streamer
 		|//@param1:streamer_width 'Streamer width' 0.05 0 0.1 0
-		|//@param2:r 'r' 1 0 1 0
-		|//@param3:g 'g' 1 0 1 0
-		|//@param4:b 'b' 1 0 1 0
-		|//@param5:a 'a' 1 0 1 0
+		|//@param2:r 'r' 1 0 1 0.5
+		|//@param3:g 'g' 1 0 1 0.5
+		|//@param4:b 'b' 1 0 1 0.5
+		|//@param5:a 'a' 1 0 1 0.5
 		|//@param6:duration 'Duration' 2 0 6 0
+		|//@param7:start_inside 'Start inside frame' 0 0 1 0.5 1 
+		|//@param8:end_inside 'End inside frame' 0 0 1 0.5 1
+		|//@param9:debug 'Show debug info' 0 0 1 0.5 1
 		|
 		|img1=input_track(0);
 		|streamer=0;
@@ -21,15 +24,46 @@
 		|// original image
 		|gfx_blit(img1,0);
 		|
+		|// calculate correct current item time
+		|frame_length = 1/framerate;
+		|start_correction = 0.5 * frame_length; // HACK - apparently the item starts in the middle of a frame???
+		|time_corrected = time / (ceil(framerate)/(framerate)) - start_correction; // time = item time
+		|
 		|// overlay streamer
 		|dw = streamer_width * project_w;
-		|x = -dw + (time / duration) * (project_w + dw); // time = item time (s)
+		|travel_width = project_w + (dw * (-1 + (start_inside ? 0 : 1) + (end_inside ? 0 : 1)));
+		|x = (start_inside ? 0 : -dw) + ((time_corrected / (duration - frame_length)) * travel_width); // subtract one frame so we arrive at the right side INSIDE the last frame, not after
 		|
 		|gfx_r = r;
 		|gfx_g = g;
 		|gfx_b = b;
 		|gfx_a = a;
 		|gfx_fillrect(x, 0, dw, project_h);
+		|
+		|// DEBUG: ----------------------------------------------------
+		|debug ? (
+		|  font = "Arial";
+		|  gfx_setfont(36, font);
+		|  gfx_set(1, 1, 1, 1);
+		|  
+		|  #timecode = sprintf(#, "start_correction: %.3fs (half frame)", start_correction);
+		|  gfx_str_draw(#timecode, 0, 0);
+		|  
+		|  #timecode = sprintf(#, "time: %.3fs", time_corrected);
+		|  gfx_str_draw(#timecode, 0, 50);
+		|  
+		|  #timecode = sprintf(#, "length: %.3fs", duration);
+		|  gfx_str_draw(#timecode, 0, 100);
+		|  
+		|  #timecode = sprintf(#, "screen width: %1dpx", project_w);
+		|  gfx_str_draw(#timecode, 0, 150);
+		|  
+		|  #timecode = sprintf(#, "streamer width: %1dpx", dw);
+		|  gfx_str_draw(#timecode, 0, 200);
+		|  
+		|  #timecode = sprintf(#, "x: %1dpx", x);
+		|  gfx_str_draw(#timecode, 0, 250);
+		|)
 	  >
 	  CODEPARM 0.1000000000 1.0000000000 1.0000000000 1.0000000000 1.0000000000 2.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000 0.0000000000
 	>
