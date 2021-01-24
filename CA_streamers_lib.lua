@@ -43,18 +43,15 @@ df = 1 / frameRate
 
 -- global memory
 GMEM_NAME = "CA_Punches_Streamers"
-GMEM_START_INSIDE = 0
-GMEM_END_INSIDE = 1
-
-reaper.gmem_attach(GMEM_NAME)
 
 function getStartInside()
-	return reaper.gmem_read(GMEM_START_INSIDE)
+	return reaper.GetExtState(GMEM_NAME, "startInside")
 end
 
 function getEndInside()
-	return reaper.gmem_read(GMEM_END_INSIDE)
+	return reaper.GetExtState(GMEM_NAME, "endInside")
 end
+
 ------
 
 -- Setup: Paths, item files, functions
