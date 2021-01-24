@@ -2,7 +2,7 @@
  * ReaScript Name: Streamers and Punches
  * Author: Christian Afonso
  * License: GPL v3
- * Version: 0.2
+ * Version: 0.4
  * REAPER: 5.0
  * Feedback and bug reports to chr DOT afonso AT gmail DOT com
  * addVideoFX function based on code by eugen2777
@@ -10,6 +10,11 @@
 
 --[[
  * Changelog:
+ * v0.4
+   + Restructured scripts: update_streamers_lib contains function, other scripts import and call these
+   + Added scripts for single actions: add_punch, add_streamer_[color]_[length] at cursor position (without markers)
+   + Added toolbar buttons
+ * v0.3
  * v0.2
    + Replaced prerendered streamer videos with video effects. Smoother playback and more flexibility
    + in colors (but still pre-defined palette for now, as colors must be read in/converted
@@ -26,11 +31,31 @@
    + Images/videos currently pre-rendered and read in from fixed data dir.
 --]]
 
--- Constants
+-- TODO: Encapsulate in object/namespace
 
+-- Constants
 -- Track name defaults
 STREAMERS = "Streamers"
 PUNCHES = "Punches"
+
+frameRate = reaper.TimeMap_curFrameRate(0)
+df = 1 / frameRate
+
+-- global memory
+GMEM_NAME = "CA_Punches_Streamers"
+GMEM_START_INSIDE = 0
+GMEM_END_INSIDE = 1
+
+reaper.gmem_attach(GMEM_NAME)
+
+function getStartInside()
+	return reaper.gmem_read(GMEM_START_INSIDE)
+end
+
+function getEndInside()
+	return reaper.gmem_read(GMEM_END_INSIDE)
+end
+------
 
 -- Setup: Paths, item files, functions
 os = reaper.GetOS();
@@ -42,7 +67,7 @@ end
 
 _,ScriptPath = reaper.get_action_context()
 ScriptPath = ScriptPath:gsub("[^" .. pathSep .. "]+$", "") -- remove filename
-dataPath = ScriptPath .. "update_streamers_data" .. pathSep
+dataPath = ScriptPath .. "data" .. pathSep
 
 -- loaded on demand from settings.lua
 -- settings.lua should have the form:
@@ -100,25 +125,26 @@ end
 -- TODO generate when circle drawing is possible in VFX script
 -- square image will be scaled and centered
 punch_white = dataPath .. "punch_900x900.png"
-
+punch_source = nil
 function getPunchSource()
-  return reaper.PCM_Source_CreateFromFile(punch_white)
+  punch_source = punch_source or reaper.PCM_Source_CreateFromFile(punch_white)
+  return punch_source
 end
 
-function insertPunch(position, punchNum)
+function insertPunch(position, punchNum, length)
   local punchItem = reaper.AddMediaItemToTrack(punchTrack)
   local punchTake = reaper.AddTakeToMediaItem(punchItem)
   local punchSource = getPunchSource()
   reaper.GetSetMediaItemTakeInfo_String(punchTake, "P_NAME", "Item P" .. (punchNum or ""), true)
   reaper.SetMediaItemTake_Source(punchTake, punchSource)
   reaper.SetMediaItemPosition(punchItem, position, false)
-  reaper.SetMediaItemLength(punchItem, 0.08, false) -- duration = 2 typical frames
+  reaper.SetMediaItemLength(punchItem, length or 2*df, false) -- 2 frames default helps with frame drops during playback
   reaper.SetMediaItemInfo_Value(punchItem, "D_FADEINLEN", 0)
   reaper.SetMediaItemInfo_Value(punchItem, "D_FADEOUTLEN", 0)
 end
 
 -- optional colors: replace in video effect params
-function addVideoFX(trackOrItem, FX, isItem, r, g, b)
+function addVideoFX(trackOrItem, FX, isItem, r, g, b, startInside, endInside)
   -- read cached FX chunk from text file and add to track chunk
   local retval, trackOrItemChunk
   if not isItem then
@@ -142,11 +168,14 @@ function addVideoFX(trackOrItem, FX, isItem, r, g, b)
         r = r or 0
         g = g or 0
         b = b or 0
+		alpha = 1
+		startInside = startInside or getStartInside()
+		endInside = endInside or getEndInside()
         local width = readSetting("streamer_width") or 0.1
         local duration = reaper.GetMediaItemInfo_Value(trackOrItem, "D_LENGTH")
         
-        -- replace colors, set thickness, set duration
-        fxChunk = fxChunk:gsub("CODEPARM .*$", "CODEPARM " .. width .. " " .. r .. " " .. g .. " " .. b .. " 1 " .. duration) -- alpha 1
+        -- set thickness, replace colors, set duration, set start/end inside
+        fxChunk = fxChunk:gsub("CODEPARM .*$", "CODEPARM " .. width .. " " .. r .. " " .. g .. " " .. b .. " " .. alpha .. " " .. duration .. " " .. startInside .. " " .. endInside)
       end
       
       fxChunk = fxChunk .. 
@@ -270,7 +299,7 @@ function hasMarkerAtStart(item)
     -- TODO error margin? Or is precise position fine?
     -- TODO check for - at end of streamer markers
     if startPosition == position then
-      if name == "P" or name == "PUNCH" or name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
+      if name:sub(1,2) == "P " or name:sub(1,5) == "PUNCH" or name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
         return true
       end
     end
@@ -425,106 +454,116 @@ function RGB(r, g, b)
   return (r*255) + (g*255 << 8) + (b*255 << 16)
 end
 
-clearTrack(punchTrack, false, true)
-clearTrack(streamerTrack, true)
--- TODO: Clear/remove additional streamer tracks!
-
-reaper.SetTrackSelected(streamerTrack, true) -- needed for InsertMedia
-
--- find markers
-numMarkers = reaper.CountProjectMarkers(0)
-
--- cache loop
-loopStart, loopEnd = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false)
-
-for m = 0,numMarkers-1 do
-  println("Checking marker " .. m)
-  local _, _, position, _, markerName, _ = reaper.EnumProjectMarkers(m)
-  local showPunch = false
-  
-  if(markerName:find("STREAMER") == 1 or markerName:find("S ") == 1) then
-    -- insert streamer. Format: "S[TREAMER] [<length_in_s> [[-]<color>]"
-    local args = {}
-    for str in markerName:gmatch("[^ ]+") do
-      table.insert(args, str)
-    end
-    local numargs = #args
-    
-    -- defaults:
-    local length = 2
-    local color = "white"
-    
-    -- calculate start, length
-    if numargs > 1 then
-      length = args[2]
-    end
-    
-    if numargs > 2 then
-      -- set color; also show punch if not "-" before color
-      color = args[3]
-      if color:sub(1,1) == "-" then
-        color = color:sub(2)
-      else
-        showPunch = true
-      end
-    else
-      showPunch = true -- no color defined = default show
-    end
-    
-    -- prevent overlaps (vfx don't work overlapped on same track)
-    local currentIndex = reaper.GetMediaTrackInfo_Value(streamerTrack, "IP_TRACKNUMBER")
-    if (currentIndex == 0) then
-      println("Error: track number for Streamers track not found! Abort.")
-      return
-    else
-      -- track number is 1-based (0 = not found, -1 = master track), track index is 0-based
-      currentIndex = currentIndex - 1
-    end
-    
-    local currentTrack = streamerTrack
-     local l = 0
-    while l < 20 and isOverlappingOtherItems(nil, currentTrack, position - length, position) do
-      println("Loop " .. l)
-      l = l + 1
-      println("Streamer item overlaps previous streamer, trying to find/create additional Streamer tracks...")
-      
-      currentIndex = currentIndex + 1
-      currentTrack = reaper.GetTrack(0, currentIndex)
-      
-      -- check if next track already is a Streamers track
-      local retval, trackName = reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", "", false)
-      println("Checking track " .. currentIndex .. " (" .. trackName .. ")")
-      if not retval or trackName ~= STREAMERS then
-        -- else create new track in-between
-        reaper.InsertTrackAtIndex(currentIndex, false)
-        currentTrack = reaper.GetTrack(0, currentIndex)
-        reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", STREAMERS, true)
-      end
-    end
-    
-    -- insert midi item
-    local streamerItem = reaper.CreateNewMIDIItemInProj(currentTrack, position - length, position, false)
-    
-    -- calculate color
-    println("color: " .. color)
-    local r, g, b = getColorValues(color)
-    
-    reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", RGB(r,g,b)|0x1000000)
-    
-    -- apply vfx
-    if(streamerItem) then
-      addVideoFX(streamerItem, "streamerVFX.txt", true, r, g, b)
-    else
-      println("Error creating empty MIDI item: " .. streamerItem)
-    end
-  end
-  
-  if (markerName == "P") or (markerName == "PUNCH") or showPunch then
-    insertPunch(position, m)
-  end
+function insertStreamer(position, length, color, showPunch)
+	-- prevent overlaps (vfx don't work overlapped on same track)
+	local currentIndex = reaper.GetMediaTrackInfo_Value(streamerTrack, "IP_TRACKNUMBER")
+	if (currentIndex == 0) then
+	  println("Error: track number for Streamers track not found! Abort.")
+	  return
+	else
+	  -- track number is 1-based (0 = not found, -1 = master track), track index is 0-based
+	  currentIndex = currentIndex - 1
+	end
+	
+	local currentTrack = streamerTrack
+	 local l = 0
+	while l < 20 and isOverlappingOtherItems(nil, currentTrack, position - length, position) do
+	  println("Loop " .. l)
+	  l = l + 1
+	  println("Streamer item overlaps previous streamer, trying to find/create additional Streamer tracks...")
+	  
+	  currentIndex = currentIndex + 1
+	  currentTrack = reaper.GetTrack(0, currentIndex)
+	  
+	  -- check if next track already is a Streamers track
+	  local retval, trackName = reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", "", false)
+	  println("Checking track " .. currentIndex .. " (" .. trackName .. ")")
+	  if not retval or trackName ~= STREAMERS then
+		-- else create new track in-between
+		reaper.InsertTrackAtIndex(currentIndex, false)
+		currentTrack = reaper.GetTrack(0, currentIndex)
+		reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", STREAMERS, true)
+	  end
+	end
+	
+	-- insert midi item
+	local streamerItem = reaper.CreateNewMIDIItemInProj(currentTrack, position - length, position, false)
+	
+	-- calculate color
+	println("color: " .. color)
+	local r, g, b = getColorValues(color)
+	
+	reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", RGB(r,g,b)|0x1000000)
+	
+	-- apply vfx
+	if(streamerItem) then
+	  addVideoFX(streamerItem, "streamerVFX.txt", true, r, g, b)
+	else
+	  println("Error creating empty MIDI item: " .. streamerItem)
+	end
+	
+	if showPunch then
+		insertPunch(position, m)
+	end
 end
 
--- restore loop
-reaper.GetSet_LoopTimeRange(true, true, loopStart, loopEnd, false)
+function update_punches_and_streamers_from_markers()
+	clearTrack(punchTrack, false, true)
+	clearTrack(streamerTrack, true)
+	-- TODO: Clear/remove additional streamer tracks!
 
-reaper.UpdateArrange()
+	reaper.SetTrackSelected(streamerTrack, true) -- needed for InsertMedia
+
+	-- find markers
+	numMarkers = reaper.CountProjectMarkers(0)
+
+	-- cache loop
+	loopStart, loopEnd = reaper.GetSet_LoopTimeRange(false, true, 0, 0, false)
+
+	for m = 0,numMarkers-1 do
+	  println("Checking marker " .. m)
+	  local _, _, position, _, markerName, _ = reaper.EnumProjectMarkers(m)
+	  local showPunch = false
+	  
+	  if(markerName:find("STREAMER") == 1 or markerName:find("S ") == 1) then
+		-- insert streamer. Format: "S[TREAMER] [<length_in_s> [[-]<color>]"
+		local args = {}
+		for str in markerName:gmatch("[^ ]+") do
+		  table.insert(args, str)
+		end
+		local numargs = #args
+		
+		-- defaults:
+		local length = 2
+		local color = "white"
+		
+		-- calculate start, length
+		if numargs > 1 then
+		  length = args[2]
+		end
+		
+		if numargs > 2 then
+		  -- set color; also show punch if not "-" before color
+		  color = args[3]
+		  if color:sub(1,1) == "-" then
+			color = color:sub(2)
+		  else
+			showPunch = true
+		  end
+		else
+		  showPunch = true -- no color defined = default show
+		end
+		
+		insertStreamer(position, length, color, showPunch)
+	  end
+	  
+	  if (markerName == "P") or (markerName == "PUNCH") then
+		insertPunch(position, m)
+	  end
+	end
+
+	-- restore loop
+	reaper.GetSet_LoopTimeRange(true, true, loopStart, loopEnd, false)
+
+	reaper.UpdateArrange()
+end
