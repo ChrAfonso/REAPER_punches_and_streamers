@@ -64,8 +64,25 @@ function mainloop()
     local position = reaper.GetMediaItemInfo_Value(punchItem, "D_POSITION")
     local length = reaper.GetMediaItemInfo_Value(punchItem, "D_LENGTH")
     
-    local entry = { type = "P", position = position, length = length }
-    table.insert(listEntries, entry)
+    local foundFlutter = false
+    if (#listEntries > 0) and (position - listEntries[#listEntries].position) < (df*2.5) then
+      flutterCount = flutterCount + 1
+      if flutterCount == 2 then
+        foundFlutter = true
+        
+        -- keep middle punch
+        listEntries[#listEntries - 1] = listEntries[#listEntries]
+        listEntries[#listEntries - 1].type = "F"
+        listEntries[#listEntries] = nil
+      end
+    else
+      flutterCount = 0
+    end
+      
+    if not foundFlutter then
+      local entry = { type = "P", position = position, length = length }
+      table.insert(listEntries, entry)
+    end
   end
   
   -- find streamers
@@ -96,6 +113,8 @@ function mainloop()
   gfx.drawstr("Color")
   -- TODO start/end inside
   y = y + 2*gfx.texth
+  
+  table.sort(listEntries, function(a, b) return a.position < b.position end) 
   
   for i = 1,#listEntries do
     local entry = listEntries[i]
