@@ -24,6 +24,13 @@ function getLastLength()
 	return reaper.GetExtState(GMEM_NAME, "lastLength")
 end
 
+function writeLastColor(color)
+	reaper.SetExtState(GMEM_NAME, "lastColor", color, true)
+end
+function getLastColor()
+	return reaper.GetExtState(GMEM_NAME, "lastColor")
+end
+
 ---------------------------------------------------------
 
 -- params
@@ -32,7 +39,7 @@ local addPunch = true
 
 local color = nil
 local length = nil
-local retval, csv = reaper.GetUserInputs("Add custom streamer", 3, "Color,Duration (seconds),Duration (beats)", "," .. getLastLength() .. ",")
+local retval, csv = reaper.GetUserInputs("Add custom streamer", 3, "Color,Duration (seconds),Duration (beats)", getLastColor() .. "," .. getLastLength() .. ",")
 if retval then
 	local tokens = {}
 	for token in csv:gmatch("([^,]*),?") do
@@ -57,5 +64,5 @@ if color and length then
 	insertStreamer(position, length, color, addPunch)
 	
 	writeLastLength(length)
-	-- TODO write last color?
+	writeLastColor(color)
 end
