@@ -366,8 +366,8 @@ function clearTrack(track, leaveTextItems, leaveUnmarkedPunches)
             reaper.AddTakeToMediaItem(item)
           end
           
-          local r, g, b = getColorValues(color)
-          addVideoFX(item, "streamerVFX.txt", true, r, g, b)
+          local r, g, b = reaper.ColorFromNative(color)
+          addVideoFX(item, "streamerVFX.txt", true, r/255, g/255, b/255)
           
           -- Punch? marked by "P" note
           if notes == "P" then
@@ -390,30 +390,62 @@ function clearTrack(track, leaveTextItems, leaveUnmarkedPunches)
   end
 end
 
-function getColorValues(color)
-  local asnum = tonumber(color)
+function RGB(nativeColor)
+  local r,g,b = reaper.ColorFromNative(nativeColor)
+  return string.format("0x%02X%02X%02X", r, g, b)
+end
+
+function getColorValues(userColor)
+  if (type(userColor) == "string") and (userColor:sub(1,1) == "#") and (#userColor == 7) then
+    -- html-style userColor (#rrggbb), transform to hex form
+	userColor = "0x" .. userColor:sub(2)
+  end
+  local asnum = tonumber(userColor)
   if(type(asnum) == "number") then
     println("Color number value!")
     return ((asnum&0xFF0000) >> 16)/255, ((asnum&0xFF00) >> 8)/255, (asnum&0xFF)/255
-  elseif(color == "white") then
+  elseif(userColor == "white") then
     return 1, 1, 1
-  elseif(color == "red") then
+  elseif(userColor == "red") then
     return 1, 0, 0
-  elseif(color == "green") then
+  elseif(userColor == "green") then
     return 0, 1, 0
-  elseif(color == "blue") then
+  elseif(userColor == "blue") then
     return 0, 0, 1
-  elseif(color == "yellow") then
+  elseif(userColor == "yellow") then
     return 1, 1, 0
-  elseif(color == "magenta") then
+  elseif(userColor == "magenta") then
     return 1, 0, 1
-  elseif(color == "cyan") then
+  elseif(userColor == "cyan") then
     return 0, 1, 1
-  elseif(color == "black") then
+  elseif(userColor == "black") then
     return 0, 0, 0
   else
-    -- default if color unknown: white
+    -- default if userColor unknown: white
     return 1, 1, 1
+  end
+end
+
+function getColorName(nativeColor)
+  color = RGB(nativeColor)
+  if color == "0xFFFFFF" then
+  	return "white"
+  elseif color == "0xFF0000" then
+  	return "red"
+  elseif color == "0x00FF00" then
+  	return "green"
+  elseif color == "0x0000FF" then
+  	return "blue"
+  elseif color == "0xFFFF00" then
+  	return "yellow"
+  elseif color == "0xFF00FF" then
+  	return "magenta"
+  elseif color == "0x00FFFF" then
+	return "cyan"
+  elseif color == "0x000000" then
+    return "black"
+  else
+	return color
   end
 end
 
@@ -445,10 +477,6 @@ function isOverlappingOtherItems(item, track, itemStart, itemEnd)
   end
   
   return false
-end
-
-function RGB(r, g, b)
-  return (r*255) + (g*255 << 8) + (b*255 << 16)
 end
 
 function insertStreamer(position, length, color, showPunch)
@@ -490,7 +518,7 @@ function insertStreamer(position, length, color, showPunch)
 	println("color: " .. color)
 	local r, g, b = getColorValues(color)
 	
-	reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", RGB(r,g,b)|0x1000000)
+	reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", reaper.ColorToNative(r*255, g*255, b*255)|0x1000000)
 	
 	-- apply vfx
 	if(streamerItem) then
