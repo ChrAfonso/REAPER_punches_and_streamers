@@ -19,6 +19,11 @@ dofile(ScriptPath .. "CA_streamers_lib.lua")
 local position = reaper.GetCursorPosition()
 local frameRate = reaper.TimeMap_curFrameRate(0)
 local df = 1 / frameRate
-insertPunch(position - 2*df, "", df)
-insertPunch(position, "", df)
-insertPunch(position + 2*df, "", df)
+
+reaper.Undo_BeginBlock()
+
+insertPunch(position - 2*df, "", df, false)
+insertPunch(position, "", df, false)
+insertPunch(position + 2*df, "", df, false)
+
+reaper.Undo_EndBlock("Insert Flutter", -1)
