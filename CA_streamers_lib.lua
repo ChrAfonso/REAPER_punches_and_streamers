@@ -128,7 +128,13 @@ function getPunchSource()
   return punch_source
 end
 
-function insertPunch(position, punchNum, length)
+function insertPunch(position, punchNum, length, undo)
+  if undo == nil then undo = true end -- default
+  
+  if undo == true then
+    reaper.Undo_BeginBlock()
+  end
+
   local punchItem = reaper.AddMediaItemToTrack(punchTrack)
   local punchTake = reaper.AddTakeToMediaItem(punchItem)
   local punchSource = getPunchSource()
@@ -138,6 +144,11 @@ function insertPunch(position, punchNum, length)
   reaper.SetMediaItemLength(punchItem, length or 2*df, false) -- 2 frames default helps with frame drops during playback
   reaper.SetMediaItemInfo_Value(punchItem, "D_FADEINLEN", 0)
   reaper.SetMediaItemInfo_Value(punchItem, "D_FADEOUTLEN", 0)
+  reaper.SetMediaItemInfo_Value(punchItem, "C_BEATATTACHMODE", 0) -- default: Time
+  
+  if undo == true then
+    reaper.Undo_EndBlock("Insert Punch", -1)
+  end
 end
 
 -- optional colors: replace in video effect params
@@ -479,7 +490,13 @@ function isOverlappingOtherItems(item, track, itemStart, itemEnd)
   return false
 end
 
-function insertStreamer(position, length, color, showPunch)
+function insertStreamer(position, length, color, showPunch, undo)
+	if undo == nil then undo = true end -- default
+	
+	if undo == true then
+		reaper.Undo_BeginBlock()
+	end
+	
 	-- prevent overlaps (vfx don't work overlapped on same track)
 	local currentIndex = reaper.GetMediaTrackInfo_Value(streamerTrack, "IP_TRACKNUMBER")
 	if (currentIndex == 0) then
@@ -520,6 +537,12 @@ function insertStreamer(position, length, color, showPunch)
 	
 	reaper.SetMediaItemInfo_Value(streamerItem, "I_CUSTOMCOLOR", reaper.ColorToNative(r*255, g*255, b*255)|0x1000000)
 	
+	-- keep item fixed in time
+	reaper.SetMediaItemInfo_Value(streamerItem, "C_BEATATTACHMODE", 0)
+	reaper.SetMediaItemInfo_Value(streamerItem, "B_LOOPSRC", 0)
+	local timesig_num, timesig_denom, tempo = reaper.TimeMap_GetTimeSigAtTime(0, position)
+	reaper.BR_SetMidiTakeTempoInfo(reaper.GetMediaItemTake(streamerItem, 0), 1, tempo, timesig_num, timesig_denom)
+	
 	-- apply vfx
 	if(streamerItem) then
 	  addVideoFX(streamerItem, "streamerVFX.txt", true, r, g, b)
@@ -528,11 +551,19 @@ function insertStreamer(position, length, color, showPunch)
 	end
 	
 	if showPunch then
-		insertPunch(position, m)
+		insertPunch(position, m, false)
+	end
+	
+	if undo == true then
+		reaper.Undo_EndBlock("Insert streamer", -1)
+		
+		reaper.UpdateArrange()
 	end
 end
 
 function update_punches_and_streamers_from_markers()
+	reaper.Undo_BeginBlock()
+
 	clearTrack(punchTrack, false, true)
 	clearTrack(streamerTrack, true)
 	-- TODO: Clear/remove additional streamer tracks!
@@ -579,16 +610,18 @@ function update_punches_and_streamers_from_markers()
 		  showPunch = true -- no color defined = default show
 		end
 		
-		insertStreamer(position, length, color, showPunch)
+		insertStreamer(position, length, color, showPunch, false)
 	  end
 	  
 	  if (markerName == "P") or (markerName == "PUNCH") then
-		insertPunch(position, m)
+		insertPunch(position, m, false)
 	  end
 	end
 
 	-- restore loop
 	reaper.GetSet_LoopTimeRange(true, true, loopStart, loopEnd, false)
-
+	
+	reaper.Undo_EndBlock("Update punches and streamers from markers", -1)
+	
 	reaper.UpdateArrange()
 end
