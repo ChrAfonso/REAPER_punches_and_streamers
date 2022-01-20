@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <index version="1" name="ChrAfonso Scripts">
   <category name="Film Scoring">
-    <reapack name="update_streamers.lua" type="script" desc="Update Streamers and Punches from Markers">
+    <reapack name="update_streamers.lua" type="script" desc="Streamers and Punches">
+	  <version name="0.4" author="ChrAfonso">
+	    <source main="true" file="CA_Punches and Streamers Package.lua">https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/dev_v0.4/CA_Punches%20and%20Streamers%20Package.lua</source>
+	  </version>
 	  <version name="0.3" author="ChrAfonso">
 	    <source main="true" file="update_streamers.lua">https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/v0.3/update_streamers.lua</source>
 		<source file="update_streamers_data/punch_900x900.png">https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/v0.3/update_streamers_data/punch_900x900.png</source>
