@@ -144,7 +144,7 @@ function insertPunch(position, punchNum, length, undo)
   reaper.SetMediaItemLength(punchItem, length or 2*df, false) -- 2 frames default helps with frame drops during playback
   reaper.SetMediaItemInfo_Value(punchItem, "D_FADEINLEN", 0)
   reaper.SetMediaItemInfo_Value(punchItem, "D_FADEOUTLEN", 0)
-  reaper.SetMediaItemInfo_Value(punchItem, "C_BEATATTACHMODE", 0) -- default: Time
+  reaper.SetMediaItemInfo_Value(punchItem, "C_BEATATTACHMODE", -1) -- track default -- can be overriden with beats
   
   if undo == true then
     reaper.Undo_EndBlock("Insert Punch", -1)
@@ -233,6 +233,15 @@ while t < reaper.CountTracks(0) do
   end
 end
 
+if streamerTrack == nil then
+  reaper.InsertTrackAtIndex(0, true)
+  streamerTrack = reaper.GetTrack(0, 0)
+  reaper.GetSetMediaTrackInfo_String(streamerTrack, "P_NAME", STREAMERS, true)
+  
+  -- NEW: replaced with take VFX
+  -- addVideoFX(streamerTrack, "streamerFX.txt")
+end
+
 -- create new if not found -- TODO create video fx
 if punchTrack == nil then
   reaper.InsertTrackAtIndex(0, true)
@@ -242,14 +251,6 @@ if punchTrack == nil then
   addVideoFX(punchTrack, "punchFX.txt")
 end
 
-if streamerTrack == nil then
-  reaper.InsertTrackAtIndex(0, true)
-  streamerTrack = reaper.GetTrack(0, 0)
-  reaper.GetSetMediaTrackInfo_String(streamerTrack, "P_NAME", STREAMERS, true)
-  
-  -- NEW: replaced with take VFX
-  -- addVideoFX(streamerTrack, "streamerFX.txt")
-end
 
 -- Search chunk for notes, and parse this:
 -- <NOTES
