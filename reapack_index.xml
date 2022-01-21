@@ -29,6 +29,8 @@
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The first two buttons call the punches/streamers and click track scripts from workflow 1\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab The next two buttons toggle whether streamers created afterwards start/end outside(default) or inside the frame\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Use the other buttons to place punches, flutters, predefined 2-second-streamers, or custom streamers at the current cursor position.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Created Punch items can be moved to correct/update their placement, or their length changed by resizing the item.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Created Streamers can be moved by dragging the item. To increase/decrease their duration, resize them with ALT key pressed (to update their internal time scaling).\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Caution when mixing workflows: Calling the workflow 1 script will remove any streamers not created from markers!\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 This script is a work-in-progress, provided as-is without any warranties. You can use it however you like, but at your own risk (Meaning: save your project before using it!) I\u8217'm very open for feedback and suggestions: chr.afonso AT gmail.com\par}
 }]]>

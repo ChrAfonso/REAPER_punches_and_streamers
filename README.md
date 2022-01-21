@@ -10,7 +10,7 @@ click track for rendering as audio stem.
 
 Installation:
 
-- a) Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/dev_v0.4/reapack_index.xml
+- a) Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/dev/reapack_index.xml
 - b) Clone/download the repository and...
   1. place the contents into your REAPER Aplication Storage directory/Scripts/ChrAfonso Scripts/Film Scoring/Punches and Streamers/
   2. Move the png icons from [target dir as in 1.]/toolbar/icons into [AppStorage/REAPER]/Data/toolbar_icons/
@@ -45,8 +45,6 @@ Workflow 2 (Toolbar):
 - The next two buttons toggle whether streamers created afterwards start/end outside(default) or inside the frame
 - Use the other buttons to place punches, flutters, predefined 2-second-streamers, or custom streamers at the current cursor position.
 
-Caution when mixing workflows: Calling the workflow 1 script will remove any streamers not created from markers!
-  
 This script is a work-in-progress, provided as-is without any warranties.
 You can use it however you like, but at your own risk (Meaning: save your project 
 before using it!)
