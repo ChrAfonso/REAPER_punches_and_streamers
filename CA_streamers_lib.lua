@@ -217,25 +217,13 @@ while t < reaper.CountTracks(0) do
     if not streamerTrack then
       -- first one = default Streamers track
       streamerTrack = track
-    else
-	  -- NOTE: Disabled because manually placed streamers on overlap track get removed.
-	  --       Before enabling again, provide setting to keep/clear manually placed streamers 
-	  --       when using the markers workflow!
-	  --[[
-      -- additional one - clean up
-      reaper.DeleteTrack(track)
-      track = nil
-	  --]]
     end
   elseif trackName == PUNCHES then
-    punchTrack = track
+    punchTrack = track -- there should only be one
   end
   
-  -- if not deleted
-  if track then
-    reaper.SetTrackSelected(track, false) -- deselect all, then select Streamer track later
-    t = t + 1
-  end
+  reaper.SetTrackSelected(track, false) -- deselect all, then select Streamer track later
+  t = t + 1
 end
 
 if streamerTrack == nil then
@@ -312,8 +300,9 @@ function hasMarkerAtStart(item)
     
     -- TODO error margin? Or is precise position fine?
     -- TODO check for - at end of streamer markers
-    if startPosition == position then
-      if name:sub(1,2) == "P " or name:sub(1,5) == "PUNCH" or name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
+    if tostring(startPosition) == tostring(position) then
+      if name == "P" or name:sub(1,5) == "PUNCH" or name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
+--        println("      hasMarkerAtStart: Found marker at position " .. position .. ", name: " .. name)
         return true
       end
     end
@@ -324,21 +313,27 @@ end
 
 -- returns true if the item has a streamer marker at the end
 function hasMarkerAtEnd(item)
+--  println("      hasMarkerAtEnd:")
   local _, endPosition = getItemStartEnd(item)
+--  println("        (endPosition: " .. endPosition .. ")")
   
   local numMarkers = reaper.CountProjectMarkers(0)
+--  println("        (numMarkers: " .. numMarkers .. ")")
   for m = 0,numMarkers-1 do
     local position, name = getMarker(m)
+--    println("          M " .. m .. " at " .. position)
     
     -- TODO error margin? Or is precise position fine?
-    if endPosition == position then
+    if tostring(endPosition) == tostring(position) then
+--      println("        Found marker at position " .. position .. ", name: " .. name)
       if name:sub(1,2) == "S " or name:sub(1,8) == "STREAMER" then
-        -- TODO check color?
+--        println("        yes")
         return true
       end
     end
   end
 
+  println("        no")
   return false -- TEMP WIP: this will leave all generated items!
 end
 
@@ -364,45 +359,72 @@ function getItemColor(item)
 end
 
 -- clear tracks and add FX to manual streamers (TODO: move this out to somewhere else)
-function clearTrack(track, leaveTextItems, leaveUnmarkedPunches)
+function clearTrack(track, leaveTextItems, leaveUnmarkedStreamersAndPunches)
   local numItems = reaper.GetTrackNumMediaItems(track)
+  println("    clearTrack: " .. numItems .. " items")
+
   local index = 0 -- should stay 0 (deleting items from the front) unless items are left, then go on to the next
   for i = 0,numItems-1 do
     local item = reaper.GetTrackMediaItem(track, index) -- delete from the front
     if item then
       local delete = true
-      local notes = getItemNotes(item) or not hasMarkerAtEnd(item)
+      local notes = getItemNotes(item)
       if leaveTextItems and notes then
+        println("      Leaving item " .. i .. ", has notes")
         delete = false
-        
-        -- TODO move out to somewhere more appropriate!
-        -- Other possibility to detect manual items: no marker at end!
-        local color = getItemColor(item)
-        if color then
-          if reaper.GetMediaItemNumTakes(item) < 1 then 
-            reaper.AddTakeToMediaItem(item)
-          end
-          
-          local r, g, b = reaper.ColorFromNative(color)
-          addVideoFX(item, "streamerVFX.txt", true, r/255, g/255, b/255)
-          
-          -- Punch? marked by "P" note
-          if notes == "P" then
-            insertPunch(reaper.GetMediaItemInfo_Value(item, "D_POSITION") + reaper.GetMediaItemInfo_Value(item, "D_LENGTH"))
-          end
-        end
       end
-      
+	  
       -- don't delete punches that won't get regenerated
-      if track == punchTrack and leaveUnmarkedPunches and not hasMarkerAtStart(item) then
-        delete = false
-      end
+      if track == punchTrack then
+	    if leaveUnmarkedStreamersAndPunches and not hasMarkerAtStart(item) then
+          println("      Leaving item " .. i .. ", is unmarked punch")
+          delete = false
+        end
+      elseif leaveUnmarkedStreamersAndPunches and not hasMarkerAtEnd(item) then
+        println("      Leaving item " .. i .. ", is unmarked streamer")
+	    delete = false
+	  end
       
       if delete then
+        println("      Deleting item " .. i)
         reaper.DeleteTrackMediaItem(track, item)
+        numItems = numItems - 1
       else
         index = index + 1
       end
+    end
+  end
+end
+
+function clearGeneratedItems()
+  println("clearGeneratedItems ---")
+  local t = 0
+  local numTracks = reaper.CountTracks(0)
+  while t < numTracks do
+    local track = reaper.GetTrack(0, t)
+    local _, trackName = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
+    if trackName == STREAMERS then
+	  println("  track " .. t .. " " .. trackName .. " is Streamer track")
+      clearTrack(track, true, true) -- leave text items, leave unmarked items - only deletes items that will be regenerated from markers
+    
+      -- first one = default Streamers track - all others can be deleted if empty
+      if track ~= streamerTrack then
+	    local numItems = reaper.CountTrackMediaItems(track)
+		if numItems == 0 then
+          reaper.DeleteTrack(track)
+          track = nil
+		  numTracks = numTracks - 1
+		end
+      end
+    elseif trackName == PUNCHES then
+	  println("  track " .. t .. " " .. trackName .. " is Punch track")
+      clearTrack(track, true, true) -- leave text items, leave unmarked items
+    end
+    
+    -- if not deleted
+    if track then
+      reaper.SetTrackSelected(track, false) -- deselect all, then select Streamer track later
+      t = t + 1
     end
   end
 end
@@ -570,9 +592,7 @@ end
 function update_punches_and_streamers_from_markers()
 	reaper.Undo_BeginBlock()
 
-	clearTrack(punchTrack, false, true)
-	clearTrack(streamerTrack, true)
-	-- TODO: Clear/remove additional streamer tracks!
+	clearGeneratedItems()
 
 	reaper.SetTrackSelected(streamerTrack, true) -- needed for InsertMedia
 
