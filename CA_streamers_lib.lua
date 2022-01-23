@@ -115,7 +115,7 @@ end
 -- debug utility
 function println(stringy)
   if readSetting("show_console") then
-  println((stringy or ""))
+    reaper.ShowConsoleMsg((stringy or "") .. "\n")
   end
 end
 
@@ -218,9 +218,14 @@ while t < reaper.CountTracks(0) do
       -- first one = default Streamers track
       streamerTrack = track
     else
+	  -- NOTE: Disabled because manually placed streamers on overlap track get removed.
+	  --       Before enabling again, provide setting to keep/clear manually placed streamers 
+	  --       when using the markers workflow!
+	  --[[
       -- additional one - clean up
       reaper.DeleteTrack(track)
       track = nil
+	  --]]
     end
   elseif trackName == PUNCHES then
     punchTrack = track
