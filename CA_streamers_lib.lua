@@ -343,7 +343,7 @@ function getItemColor(item)
   if retval then
     for line in (chunk.."\n"):gmatch("(.-)\n") do
       if line:find("COLOR") then
-        local m = line:match(".*COLOR ([0-9]+) R.*")
+        local m = line:match(".*COLOR ([0-9]+) [RB].*") -- NOTE: seems R on win, B on Mac
         if m then
           color = m
         end

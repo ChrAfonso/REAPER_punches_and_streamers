@@ -37,6 +37,48 @@
 		</description>
 		<link rel="screenshot">https://github.com/ChrAfonso/REAPER_punches_and_streamers/blob/v0.4.01/doc/screenshot1.png?raw=true</link>
 	  </metadata>
+	  <version name="0.4.04" author="ChrAfonso">
+		<changelog><![CDATA[# Fixed 'show streamers list' script crash on Mac (due to different item COLOR format) ]]></changelog>
+		<source main="main" file='Punches and Streamers/CA_add custom streamer.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20custom%20streamer.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add flutter.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20flutter.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add green streamer 2s.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20green%20streamer%202s.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add green streamer 3s.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20green%20streamer%203s.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add green streamer custom length.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20green%20streamer%20custom%20length.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add punch.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20punch.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add red streamer 2s.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20red%20streamer%202s.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add red streamer 3s.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20red%20streamer%203s.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add white streamer 2s.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20white%20streamer%202s.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add white streamer 3s.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20white%20streamer%203s.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add yellow streamer 2s.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20yellow%20streamer%202s.lua</source>
+		<source main="main" file='Punches and Streamers/CA_add yellow streamer 3s.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_add%20yellow%20streamer%203s.lua</source>
+		<source main="main" file='Punches and Streamers/CA_show streamers list.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_show%20streamers%20list.lua</source>
+		<source main="main" file='Punches and Streamers/CA_streamer settings disable end inside.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_streamer%20settings%20disable%20end%20inside.lua</source>
+		<source main="main" file='Punches and Streamers/CA_streamer settings disable start inside.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_streamer%20settings%20disable%20start%20inside.lua</source>
+		<source main="main" file='Punches and Streamers/CA_streamer settings enable end inside.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_streamer%20settings%20enable%20end%20inside.lua</source>
+		<source main="main" file='Punches and Streamers/CA_streamer settings enable start inside.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_streamer%20settings%20enable%20start%20inside.lua</source>
+		<source main="main" file='Punches and Streamers/CA_streamer settings toggle end inside.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_streamer%20settings%20toggle%20end%20inside.lua</source>
+		<source main="main" file='Punches and Streamers/CA_streamer settings toggle start inside.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_streamer%20settings%20toggle%20start%20inside.lua</source>
+		<source main="nomain" file='Punches and Streamers/CA_streamers_lib.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_streamers_lib.lua</source>
+		<source main="main" file='Punches and Streamers/CA_update click track.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_update%20click%20track.lua</source>
+		<source main="main" file='Punches and Streamers/CA_update punches and streamers from markers.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/CA_update%20punches%20and%20streamers%20from%20markers.lua</source>
+		<source main="nomain" file='Punches and Streamers/data/punch_900x900.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/data/punch_900x900.png</source>
+		<source main="nomain" file='Punches and Streamers/data/settings.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/data/settings.lua</source>
+		<source main="nomain" file='Punches and Streamers/data/FX/bluescreen rgba.RfxChain'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/data/FX/bluescreen%20rgba.RfxChain</source>
+		<source main="nomain" file='Punches and Streamers/data/FX/punchFX.txt'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/data/FX/punchFX.txt</source>
+		<source main="nomain" file='Punches and Streamers/data/FX/removeblack_punches.RfxChain'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/data/FX/removeblack_punches.RfxChain</source>
+		<source main="nomain" file='Punches and Streamers/data/FX/streamerFX.txt'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/data/FX/streamerFX.txt</source>
+		<source main="nomain" file='Punches and Streamers/data/FX/streamerVFX.txt'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/data/FX/streamerVFX.txt</source>
+		<source main="nomain" file='Punches and Streamers/doc/CA_Punches_and_Streamers_README.txt'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/doc/CA_Punches_and_Streamers_README.txt</source>
+		<source main="nomain" file='Punches and Streamers/doc/screenshot1.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/doc/screenshot1.png</source>
+		<source main="nomain" file='Punches and Streamers/toolbar/FilmSync.ReaperMenu'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/toolbar/FilmSync.ReaperMenu</source>
+		<source type="data" main="nomain" file='toolbar_icons/ca_ps_add_flutter.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/toolbar/icons/ca_ps_add_flutter.png</source>
+		<source type="data" main="nomain" file='toolbar_icons/ca_ps_add_punch.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/toolbar/icons/ca_ps_add_punch.png</source>
+		<source type="data" main="nomain" file='toolbar_icons/ca_ps_add_streamer_custom.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/toolbar/icons/ca_ps_add_streamer_custom.png</source>
+		<source type="data" main="nomain" file='toolbar_icons/ca_ps_add_streamer_green_2s.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/toolbar/icons/ca_ps_add_streamer_green_2s.png</source>
+		<source type="data" main="nomain" file='toolbar_icons/ca_ps_add_streamer_red_2s.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/toolbar/icons/ca_ps_add_streamer_red_2s.png</source>
+		<source type="data" main="nomain" file='toolbar_icons/ca_ps_add_streamer_white_2s.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/toolbar/icons/ca_ps_add_streamer_white_2s.png</source>
+		<source type="data" main="nomain" file='toolbar_icons/ca_ps_add_streamer_yellow_2s.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.04/toolbar/icons/ca_ps_add_streamer_yellow_2s.png</source>
+	  </version>
 	  <version name="0.4.03" author="ChrAfonso">
 		<changelog><![CDATA[# Fixed new Streamer track creation at end, nesting depth in middle of track list ]]></changelog>
 		<source main="main" file='Punches and Streamers/CA_add custom streamer.lua'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.4.03/CA_add%20custom%20streamer.lua</source>
