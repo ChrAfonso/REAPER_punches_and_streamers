@@ -542,6 +542,9 @@ function insertStreamer(position, length, color, showPunch, undo)
 	  l = l + 1
 	  println("Streamer item overlaps previous streamer, trying to find/create additional Streamer tracks...")
 	  
+	  local lastTrack = currentTrack
+	  local lastFolderDepth = reaper.GetMediaTrackInfo_Value(lastTrack, "I_FOLDERDEPTH")
+	  
 	  currentIndex = currentIndex + 1
 	  currentTrack = reaper.GetTrack(0, currentIndex)
 	  
@@ -556,8 +559,12 @@ function insertStreamer(position, length, color, showPunch, undo)
 	  if not retval or trackName ~= STREAMERS then
 		-- else create new track in-between
 		reaper.InsertTrackAtIndex(currentIndex, false)
+		
 		currentTrack = reaper.GetTrack(0, currentIndex)
 		reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", STREAMERS, true)
+		
+		reaper.SetMediaTrackInfo_Value(lastTrack, "I_FOLDERDEPTH", 0) -- normal
+		reaper.SetMediaTrackInfo_Value(currentTrack, "I_FOLDERDEPTH", lastFolderDepth) -- folder nesting info from previous track
 	  end
 	end
 	
