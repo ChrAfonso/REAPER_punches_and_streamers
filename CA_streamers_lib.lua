@@ -546,8 +546,13 @@ function insertStreamer(position, length, color, showPunch, undo)
 	  currentTrack = reaper.GetTrack(0, currentIndex)
 	  
 	  -- check if next track already is a Streamers track
-	  local retval, trackName = reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", "", false)
-	  println("Checking track " .. currentIndex .. " (" .. trackName .. ")")
+	  local retval = nil
+	  local trackName = ""
+	  if currentTrack then
+	    retval, trackName = reaper.GetSetMediaTrackInfo_String(currentTrack, "P_NAME", "", false)
+	    println("Checking track " .. currentIndex .. " (" .. trackName .. ")")
+	  end
+	  
 	  if not retval or trackName ~= STREAMERS then
 		-- else create new track in-between
 		reaper.InsertTrackAtIndex(currentIndex, false)
