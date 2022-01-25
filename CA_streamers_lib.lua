@@ -151,6 +151,24 @@ function insertPunch(position, punchNum, length, undo)
   end
 end
 
+function insertFlutter(position, count)
+  count = count or 3
+  if count < 3 then count = 3 end
+  
+  reaper.Undo_BeginBlock()
+  
+  local max_pre = math.ceil(count/2) - 1
+  for pre = 1,max_pre do
+    insertPunch(position - 2*pre*df, "", df, false)
+  end
+  insertPunch(position, "", df, false)
+  for post = 1,(count - 1 - max_pre) do
+    insertPunch(position + 2*post*df, "", df, false)
+  end
+  
+  reaper.Undo_EndBlock("Insert Flutter", -1)
+end
+
 -- optional colors: replace in video effect params
 function addVideoFX(trackOrItem, FX, isItem, r, g, b, startInside, endInside)
   -- read cached FX chunk from text file and add to track chunk
@@ -664,6 +682,17 @@ function update_punches_and_streamers_from_markers()
 	reaper.UpdateArrange()
 end
 
+-- string utilities
+
+function split_string(str, delimiters)
+  local elements = {}
+  local pattern = '([^'..delimiters..']*)'
+  string.gsub(str, pattern, function(value) elements[#elements + 1] = value;  end);
+  return elements
+end
+
+-- timecode utilities
+
 function format_timecode(time)
   local hours = math.floor(time / 3600)
   local minutes = math.floor((time - (hours * 3600)) / 60)
@@ -685,6 +714,33 @@ function format_seconds_frames(time)
   return string.format("%02d", seconds) .. ":" -- TODO: ; for drop-frame
     .. string.format("%02d", frames)
 end
+
+-- timecode format expected: [[HH:]MM:]SS:FF
+function parse_timecode(timecodeString, applyProjectOffset)
+  applyProjectOffset = applyProjectOffset or false
+
+  local tokens = split_string(timecodeString, ":")
+  
+  local frames = tonumber(tokens[#tokens])
+  local seconds = tonumber(tokens[#tokens - 1])
+  local minutes = 0
+  local hours = 0
+  if #tokens > 2 then
+    minutes = tonumber(tokens[#tokens - 2])
+    if #tokens > 3 then
+      hours = tonumber(tokens[#tokens - 3])
+    end
+  end
+  
+  local time = (frames / frameRate) + seconds + (minutes * 60) + (hours * 3600)
+  if applyProjectOffset then
+    return time - reaper.GetProjectTimeOffset(0, true)
+  else
+    return time
+  end
+end
+
+-- save/load
 
 -- TODO also provide function to create from punch/streamer markers?
 --      or: reference X-Raym markers-to-csv script?

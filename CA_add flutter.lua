@@ -26,10 +26,4 @@ end
 local frameRate = reaper.TimeMap_curFrameRate(0)
 local df = 1 / frameRate
 
-reaper.Undo_BeginBlock()
-
-insertPunch(position - 2*df, "", df, false)
-insertPunch(position, "", df, false)
-insertPunch(position + 2*df, "", df, false)
-
-reaper.Undo_EndBlock("Insert Flutter", -1)
+insertFlutter(position, 3)
