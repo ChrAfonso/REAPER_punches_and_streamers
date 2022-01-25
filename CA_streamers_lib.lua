@@ -777,15 +777,22 @@ function create_table_from_streamer_items()
   end
   
   -- find streamers
-  local countStreamerItems = reaper.GetTrackNumMediaItems(streamerTrack)
-  for i = 0,countStreamerItems-1 do
-    local streamerItem = reaper.GetTrackMediaItem(streamerTrack, i)
-    local position = reaper.GetMediaItemInfo_Value(streamerItem, "D_POSITION") + reaper.GetProjectTimeOffset(0, true)
-    local length = reaper.GetMediaItemInfo_Value(streamerItem, "D_LENGTH")
-    local color = getItemColor(streamerItem)
-    
-    local entry = { type = "S", position = position, length = length, color = color }
-    table.insert(listEntries, entry)
+  local numTracks = reaper.CountTracks(0)
+  for t = 0,numTracks-1 do
+    local track = reaper.GetTrack(0, t)
+    local _, trackName = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
+    if trackName == STREAMERS then
+      local countStreamerItems = reaper.GetTrackNumMediaItems(track)
+      for i = 0,countStreamerItems-1 do
+        local streamerItem = reaper.GetTrackMediaItem(track, i)
+        local position = reaper.GetMediaItemInfo_Value(streamerItem, "D_POSITION") + reaper.GetProjectTimeOffset(0, true)
+        local length = reaper.GetMediaItemInfo_Value(streamerItem, "D_LENGTH")
+        local color = getItemColor(streamerItem)
+        
+        local entry = { type = "S", position = position, length = length, color = color }
+        table.insert(listEntries, entry)
+      end
+	end
   end
   
   table.sort(listEntries, function(a, b) return a.position < b.position end)
