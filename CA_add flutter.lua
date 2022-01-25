@@ -17,6 +17,12 @@ dofile(ScriptPath .. "CA_streamers_lib.lua")
 ---------------------------------------------------------
 
 local position = reaper.GetCursorPosition()
+
+-- override with play position if not stopped
+if reaper.GetPlayState() > 0 then
+  position = reaper.GetPlayPosition()
+end
+
 local frameRate = reaper.TimeMap_curFrameRate(0)
 local df = 1 / frameRate
 

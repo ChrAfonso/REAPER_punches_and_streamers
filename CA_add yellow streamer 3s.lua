@@ -25,4 +25,9 @@ local addPunch = true
 
 local position = reaper.GetCursorPosition()
 
+-- override with play position if not stopped
+if reaper.GetPlayState() > 0 then
+  position = reaper.GetPlayPosition()
+end
+
 insertStreamer(position, length, color, addPunch)
