@@ -663,3 +663,76 @@ function update_punches_and_streamers_from_markers()
 	
 	reaper.UpdateArrange()
 end
+
+function format_timecode(time)
+  local hours = math.floor(time / 3600)
+  local minutes = math.floor((time - (hours * 3600)) / 60)
+  local seconds = math.floor(time - (hours * 3600) - (minutes * 60))
+  local ms = (time - (hours * 3600) - (minutes * 60) - seconds)
+  local frames = math.floor(ms * frameRate)
+  return string.format("%02d", hours) .. ":" 
+    .. string.format("%02d", minutes) .. ":" 
+    .. string.format("%02d", seconds) .. ":" -- TODO: ; for drop-frame
+    .. string.format("%02d", frames)
+end
+
+function format_seconds_frames(time)
+  local hours = math.floor(time / 3600)
+  local minutes = math.floor((time - (hours * 3600)) / 60)
+  local seconds = math.floor(time - (hours * 3600) - (minutes * 60))
+  local ms = (time - (hours * 3600) - (minutes * 60) - seconds)
+  local frames = math.floor(ms * frameRate)
+  return string.format("%02d", seconds) .. ":" -- TODO: ; for drop-frame
+    .. string.format("%02d", frames)
+end
+
+-- TODO also provide function to create from punch/streamer markers?
+--      or: reference X-Raym markers-to-csv script?
+function create_table_from_streamer_items()
+  listEntries = {}
+  
+  -- find punches
+  local countPunchItems = reaper.GetTrackNumMediaItems(punchTrack)
+  local flutterCount = 0
+  for i = 0,countPunchItems-1 do
+    local punchItem = reaper.GetTrackMediaItem(punchTrack, i)
+    local position = reaper.GetMediaItemInfo_Value(punchItem, "D_POSITION") + reaper.GetProjectTimeOffset(0, true)
+    local length = reaper.GetMediaItemInfo_Value(punchItem, "D_LENGTH")
+    
+    local foundFlutter = false
+    if (#listEntries > 0) and (position - listEntries[#listEntries].position) < (df*2.5) then
+      flutterCount = flutterCount + 1
+      if flutterCount == 2 then
+        foundFlutter = true
+        
+        -- keep middle punch
+        listEntries[#listEntries - 1] = listEntries[#listEntries]
+        listEntries[#listEntries - 1].type = "F"
+        listEntries[#listEntries] = nil
+      end
+    else
+      flutterCount = 0
+    end
+      
+    if not foundFlutter then
+      local entry = { type = "P", position = position, length = length }
+      table.insert(listEntries, entry)
+    end
+  end
+  
+  -- find streamers
+  local countStreamerItems = reaper.GetTrackNumMediaItems(streamerTrack)
+  for i = 0,countStreamerItems-1 do
+    local streamerItem = reaper.GetTrackMediaItem(streamerTrack, i)
+    local position = reaper.GetMediaItemInfo_Value(streamerItem, "D_POSITION") + reaper.GetProjectTimeOffset(0, true)
+    local length = reaper.GetMediaItemInfo_Value(streamerItem, "D_LENGTH")
+    local color = getItemColor(streamerItem)
+    
+    local entry = { type = "S", position = position, length = length, color = color }
+    table.insert(listEntries, entry)
+  end
+  
+  table.sort(listEntries, function(a, b) return a.position < b.position end)
+  
+  return listEntries
+end

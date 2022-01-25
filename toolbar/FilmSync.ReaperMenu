@@ -11,6 +11,7 @@ icon_11=ca_ps_add_streamer_white_2s.png
 icon_12=ca_ps_add_streamer_yellow_2s.png
 icon_14=ca_ps_add_streamer_custom.png
 icon_15=text
+icon_17=toolbar_save.png
 item_0=_RSe28eae5693ea82edc34c8aa41a6d6fe22e0a275b Update Punches and Streamers from Markers
 item_1=_RS3e39d82061f21d90321b5833171482f998cb6327 Update Click Track from Markers
 item_2=-1
@@ -27,3 +28,6 @@ item_12=_RS87ddcc90f8207422660febc84855dbc55b022f55 Add yellow 2s streamer
 item_13=-1
 item_14=_RS02f2c386f178fff6d94e617c37c971e80ae58ed3 Add custom streamer
 item_15=_RS783a62d1276020ec1c16cc763c12e47b79412355 S&P List
+item_16=-1
+item_17=_RS441be595a5a9db8053345590cb87a4c1865cdd68 Export items to CSV
+

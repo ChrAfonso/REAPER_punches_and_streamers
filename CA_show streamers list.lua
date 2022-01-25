@@ -21,28 +21,6 @@ font = "Arial"
 font_size = 36
 font_color = reaper.ColorToNative(255, 255, 255)
 
-function format_timecode(time)
-  local hours = math.floor(time / 3600)
-  local minutes = math.floor((time - hours) / 60)
-  local seconds = math.floor(time - hours - minutes)
-  local ms = (time - hours - minutes - seconds)
-  local frames = math.floor(ms * frameRate)
-  return string.format("%02d", hours) .. ":" 
-    .. string.format("%02d", minutes) .. ":" 
-    .. string.format("%02d", seconds) .. ":" -- TODO: ; for drop-frame
-    .. string.format("%02d", frames)
-end
-
-function format_seconds_frames(time)
-  local hours = math.floor(time / 3600)
-  local minutes = math.floor((time - hours) / 60)
-  local seconds = math.floor(time - hours - minutes)
-  local ms = (time - hours - minutes - seconds)
-  local frames = math.floor(ms * frameRate)
-  return string.format("%02d", seconds) .. ":" -- TODO: ; for drop-frame
-    .. string.format("%02d", frames)
-end
-
 function mainloop()
   -- input
   if gfx.mouse_wheel ~= 0 then
@@ -52,55 +30,14 @@ function mainloop()
 
   -- update and draw
   
-  listEntries = {}
-  
-  gfx.setfont(1, font, font_size)
-  
-  -- find punches
-  local countPunchItems = reaper.GetTrackNumMediaItems(punchTrack)
-  local flutterCount = 0
-  for i = 0,countPunchItems-1 do
-    local punchItem = reaper.GetTrackMediaItem(punchTrack, i)
-    local position = reaper.GetMediaItemInfo_Value(punchItem, "D_POSITION")
-    local length = reaper.GetMediaItemInfo_Value(punchItem, "D_LENGTH")
-    
-    local foundFlutter = false
-    if (#listEntries > 0) and (position - listEntries[#listEntries].position) < (df*2.5) then
-      flutterCount = flutterCount + 1
-      if flutterCount == 2 then
-        foundFlutter = true
-        
-        -- keep middle punch
-        listEntries[#listEntries - 1] = listEntries[#listEntries]
-        listEntries[#listEntries - 1].type = "F"
-        listEntries[#listEntries] = nil
-      end
-    else
-      flutterCount = 0
-    end
-      
-    if not foundFlutter then
-      local entry = { type = "P", position = position, length = length }
-      table.insert(listEntries, entry)
-    end
-  end
-  
-  -- find streamers
-  local countStreamerItems = reaper.GetTrackNumMediaItems(streamerTrack)
-  for i = 0,countStreamerItems-1 do
-    local streamerItem = reaper.GetTrackMediaItem(streamerTrack, i)
-    local position = reaper.GetMediaItemInfo_Value(streamerItem, "D_POSITION")
-    local length = reaper.GetMediaItemInfo_Value(streamerItem, "D_LENGTH")
-    local color = getItemColor(streamerItem)
-    
-    local entry = { type = "S", position = position, length = length, color = color }
-    table.insert(listEntries, entry)
-  end
+  local listEntries = create_table_from_streamer_items()
   
   -- display
   local x = 10
   local y = 10
   local tab_width = 200
+  
+  gfx.setfont(1, font, font_size)
   
   gfx.x = x
   gfx.y = y
