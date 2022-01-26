@@ -13,7 +13,7 @@ Prerequisites:
 
 Installation:
 
-- a) Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/dev/reapack_index.xml
+- a) Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/master/reapack_index.xml
 - b) Clone/download the repository and...
   1. place the contents into your REAPER Aplication Storage directory/Scripts/ChrAfonso Scripts/Film Scoring/Punches and Streamers/
   2. Move the png icons from [target dir as in 1.]/toolbar/icons into [AppStorage/REAPER]/Data/toolbar_icons/

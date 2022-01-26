@@ -14,7 +14,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Prerequisites:\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \bullet SWS/S&M extensions (https://www.sws-extension.org/) \sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Installation:\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \bullet Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/v0.4.01/reapack_index.xml \sa180\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \bullet Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/master/reapack_index.xml \sa180\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \bullet Clone/download the repository and\u8230?\sa180\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \tx360\tab1. place the contents into your REAPER Aplication Storage directory/Scripts/ChrAfonso Scripts/Film Scoring/Punches and Streamers/\par}
 {\pard \ql \f0 \sa0 \li720 \fi-360 \tx360\tab2. Move the png icons from [target dir as in 1.]/toolbar/icons into [AppStorage/REAPER]/Data/toolbar_icons/\sa180\sa180\par}
@@ -39,7 +39,7 @@
 		</description>
 		<link rel="screenshot">https://github.com/ChrAfonso/REAPER_punches_and_streamers/blob/v0.4.01/doc/screenshot1.png?raw=true</link>
 	  </metadata>
-	  <version name="0.5.00" author="ChrAfonso">
+	  <version name="0.5" author="ChrAfonso">
 		<changelog><![CDATA[• New actions and toolbar buttons: Import/Export punches and streamers items from/to CSV file (toolbar must be re-imported!)
 • When playing, immediate toolbar actions place punches/flutters/streamers at playhead instead of edit cursor
 • Moved insertFlutter function to CA_streamers_lib, called from 'CA_add flutter'. Optional parameter 'count' (default 3)
@@ -78,7 +78,6 @@
 		<source main="nomain" file='Punches and Streamers/data/FX/removeblack_punches.RfxChain'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.5.00/data/FX/removeblack_punches.RfxChain</source>
 		<source main="nomain" file='Punches and Streamers/data/FX/streamerFX.txt'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.5.00/data/FX/streamerFX.txt</source>
 		<source main="nomain" file='Punches and Streamers/data/FX/streamerVFX.txt'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.5.00/data/FX/streamerVFX.txt</source>
-		<source main="nomain" file='Punches and Streamers/doc/CA_Punches_and_Streamers_README.txt'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.5.00/doc/CA_Punches_and_Streamers_README.txt</source>
 		<source main="nomain" file='Punches and Streamers/doc/screenshot1.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.5.00/doc/screenshot1.png</source>
 		<source main="nomain" file='Punches and Streamers/toolbar/FilmSync.ReaperMenu'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.5.00/toolbar/FilmSync.ReaperMenu</source>
 		<source type="data" main="nomain" file='toolbar_icons/ca_ps_add_flutter.png'>https://raw.githubusercontent.com/ChrAfonso/REAPER_punches_and_streamers/v0.5.00/toolbar/icons/ca_ps_add_flutter.png</source>
