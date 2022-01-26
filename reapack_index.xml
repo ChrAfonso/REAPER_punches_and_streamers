@@ -12,12 +12,12 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 by Christian Afonso\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 REAPER script to overlay punches and streamers over video track. Still early version, some things might not work all the time. Also contains a simple script to generate sections of click track for rendering as audio stem.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Prerequisites:\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \bullet \tx360\tab a)\tx360\tab SWS/S&M extensions (https://www.sws-extension.org/) \sa180\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \bullet SWS/S&M extensions (https://www.sws-extension.org/) \sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Installation:\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \bullet \tx360\tab a)\tx360\tab Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/v0.4.01/reapack_index.xml \sa180\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 \bullet \tx360\tab b)\tx360\tab Clone/download the repository and\u8230?\sa180\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 1.\tx360\tab place the contents into your REAPER Aplication Storage directory/Scripts/ChrAfonso Scripts/Film Scoring/Punches and Streamers/\par}
-{\pard \ql \f0 \sa0 \li720 \fi-360 2.\tx360\tab Move the png icons from [target dir as in 1.]/toolbar/icons into [AppStorage/REAPER]/Data/toolbar_icons/\sa180\sa180\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \bullet Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/v0.4.01/reapack_index.xml \sa180\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \bullet Clone/download the repository and\u8230?\sa180\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \tx360\tab1. place the contents into your REAPER Aplication Storage directory/Scripts/ChrAfonso Scripts/Film Scoring/Punches and Streamers/\par}
+{\pard \ql \f0 \sa0 \li720 \fi-360 \tx360\tab2. Move the png icons from [target dir as in 1.]/toolbar/icons into [AppStorage/REAPER]/Data/toolbar_icons/\sa180\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 To use the toolbar:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab right click on your toolbar -> Open -> Floating Toolbar 1\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab right click the new toolbar -> Customize Toolbar -> Import, browse to and open [target dir as above]/toolbar/FilmSync.ReaperMenu\sa180\par}

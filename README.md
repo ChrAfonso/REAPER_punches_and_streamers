@@ -8,6 +8,9 @@ REAPER script to overlay punches and streamers over video track. Still early ver
 things might not work all the time. Also contains a simple script to generate sections of
 click track for rendering as audio stem.
 
+Prerequisites:
+- SWS/S&M Extensions (https://www.sws-extension.org/)
+
 Installation:
 
 - a) Install via ReaPack: https://github.com/ChrAfonso/REAPER_punches_and_streamers/raw/dev/reapack_index.xml
@@ -44,6 +47,7 @@ Workflow 2 (Toolbar):
 - The first two buttons call the punches/streamers and click track scripts from workflow 1
 - The next two buttons toggle whether streamers created afterwards start/end outside(default) or inside the frame
 - Use the other buttons to place punches, flutters, predefined 2-second-streamers, or custom streamers at the current cursor position.
+- The two buttons at the end can be used to load/save your current punches and streamers from/to a CSV file (requires js_ReaScript_API).
 
 This script is a work-in-progress, provided as-is without any warranties.
 You can use it however you like, but at your own risk (Meaning: save your project 
